@@ -5,12 +5,10 @@
 using namespace std;
 
 class Fraction {
- private:
+ public:
   int numerator, denominator;
 
- public:
-  // @TODO negatives
-  Fraction(int n, int d) : numerator(n), denominator(d) {
+  Fraction(int n = 1, int d = 1) : numerator(n), denominator(d) {
     if (denominator == 0) throw logic_error("divide by zero");
     Normalize();
   }
@@ -28,6 +26,11 @@ class Fraction {
     denominator /= gcd;
   }
 
+  Fraction operator=(const Fraction& other) {
+    numerator = other.numerator, denominator = other.denominator;
+    return {numerator, denominator};
+  }
+
   Fraction operator+(const Fraction& otherFraction) const {
     int n = numerator * otherFraction.denominator + otherFraction.numerator * denominator;
     int d = denominator * otherFraction.denominator;
@@ -43,7 +46,7 @@ class Fraction {
     int d = denominator * otherFraction.denominator;
     return {n, d};
   }
-  Fraction operator/(Fraction& otherFraction) const {
+  Fraction operator/(const Fraction& otherFraction) const {
     int n = numerator * otherFraction.denominator;
     int d = denominator * otherFraction.numerator;
     return {n, d};
@@ -56,10 +59,34 @@ class Fraction {
     return !(*this == otherFraction);
   }
 
+  Fraction operator+=(const Fraction& otherFraction) {
+    *this = *this + otherFraction;
+    return *this;
+  }
+  Fraction operator-=(const Fraction& otherFraction) {
+    *this = *this - otherFraction;
+    return *this;
+  }
+  Fraction operator/=(const Fraction& otherFraction) {
+    *this = *this / otherFraction;
+    return *this;
+  }
+
+  ostream& operator<<(ostream& os) const {
+    os << numerator << "/" << denominator << endl;
+    return os;
+  }
+
   void show() {
     cout << numerator << "/" << denominator << endl;
   }
 };
+
+
+ostream& operator<<(ostream& os, const Fraction& dt){
+  os << dt.numerator << '/' << dt.denominator;
+  return os;
+}
 
 template<typename T>
 class Solver {
@@ -68,9 +95,9 @@ class Solver {
   // @TODO add ability to change function, default=std::max
   // @TODO add METHOD param
   // @TODO zero assertion
-  explicit Solver(vector<vector<int>> aa, vector<int> bb)
+  explicit Solver(vector<vector<T>> aa, vector<T> bb)
       : a(move(aa)), b(move(bb)), ans_perm(vector<int>(a.size(), 0)) {
-    if (a.empty() || a.size() != a[0].size()) throw logic_error("bad matrix error");
+    if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix error");
     size_ = a.size();
     for (int i = 0; i < size_; ++i) {
       ans_perm[i] = i;
@@ -78,16 +105,17 @@ class Solver {
   }
 
   void Solve() {
-    // up-down
+    /// time complexity is O(n^3)
     for (int i = 0; i < size_; ++i) {
-      Solve(i, i);
+      Solve(i);
     }
+
     Print();
     cout << endl;
 
-    // down-up
+    /// time complexity is O(n^2)
     for (int i = size_ - 1; i >= 0; --i) {
-      int cost = 0;
+      T cost = 0;
       for (int j = i + 1; j < size_; ++j) {
         cost += a[i][j] * b[j];
         a[i][j] = 0;
@@ -96,20 +124,20 @@ class Solver {
     }
   }
 
-  void Solve(int start_i, int start_j) {
+  void Solve(int stage) {
     //auto max_pos = max_in_the_sqr(start_i, start_j);
-    auto max_pos = make_pair(start_i, start_j);
+    auto max_pos = make_pair(stage, stage);
     //swap_rows(start_i, max_pos.first);
     //swap_columns(start_j, max_pos.second);
-    normalize_row(start_i, start_i);
-    for (int row = start_i + 1; row < size_; ++row) {
-      substract_str(row, start_i, start_i);
+    normalize_row(stage);
+    for (int row = stage + 1; row < size_; ++row) {
+      substract_str(row, stage);
     }
 
   }
 
   /// returns number of column, where max is located
-  const int max_in_the_row(int row) {
+  int max_in_the_row(int row) {
     int best_column = 0;
     for (int column = 1; column < size_; ++column) {
       if (a[row][column] > a[row][best_column]) {
@@ -119,7 +147,7 @@ class Solver {
     return best_column;
   }
 
-  const pair<int, int> max_in_the_sqr(int start_i, int start_j) {
+  pair<int, int> max_in_the_sqr(int start_i, int start_j) {
     int best_i = start_i, best_j = start_j;
     for (int i = start_i; i < size_; ++i) {
       for (int j = start_j; j < size_; ++j) {
@@ -144,18 +172,18 @@ class Solver {
   }
 
   /// think that from-row is normalized
-  void substract_str(int row, int from, int first) {
-    int koef = a[row][first];
-    for (int col = first; col < size_; ++col) {
-      a[row][col] -= a[from][col] * koef;
+  void substract_str(int row, int stage) {
+    T koef = a[row][stage];
+    for (int col = stage; col < size_; ++col) {
+      a[row][col] -= a[stage][col] * koef;
     }
-    b[row] -= b[from] * koef;
+    b[row] -= b[stage] * koef;
   }
 
-  void normalize_row(int row, int first) {
-    int koef = a[row][first];
-    a[row][first] = 1;
-    for (int col = 1; col < size_; ++col) {
+  void normalize_row(int row) {
+    T koef = a[row][row];
+    //a[row][row] = 1;
+    for (int col = row; col < size_; ++col) {
       a[row][col] /= koef;
     }
   }
@@ -171,8 +199,8 @@ class Solver {
   }
 
  private:
-  vector<vector<int>> a;
-  vector<int> b;
+  vector<vector<T>> a;
+  vector<T> b;
   vector<int> ans_perm;
   int size_;
 };
@@ -192,16 +220,38 @@ void FractionTests() {
   cout << "Fraction passed tests" << endl;
 }
 
-// @TODO unit-tests
-
-int main() {
-  FractionTests();
-  int n = 5;
+void SolverIntTests() {
   vector<vector<int>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
   vector<int> b = {4, 19, 10};
   auto smth = new Solver<int>(a, b);
   smth->Print();
   smth->Solve();
   smth->Print();
+  cout << "Solver passed tests with int" << endl;
+}
+
+void SolverFractionTests() {
+  vector<vector<int>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
+  vector<int> b = {4, 19, 10};
+  vector<vector<Fraction>> test_a(a.size(), vector<Fraction>(a.size()));
+  vector<Fraction> test_b(a.size());
+  for (int i = 0; i < a.size(); ++i) {
+    for (int j = 0; j < a.size(); ++j) {
+      test_a[i][j] = Fraction(a[i][j], 1);
+    }
+    test_b[i] = Fraction(b[i], 1);
+  }
+
+  auto solver = new Solver<Fraction>(test_a, test_b);
+  solver->Print();
+  solver->Solve();
+  solver->Print();
+  cout << "Solver passed tests with Fraction" << endl;
+}
+
+int main() {
+  FractionTests();
+  //SolverIntTests();
+  SolverFractionTests();
   return 0;
 }
