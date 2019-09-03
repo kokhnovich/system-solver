@@ -133,6 +133,8 @@ class Solver {
     /// time complexity is O(n^3)
     for (int i = 0; i < size_; ++i) {
       Solve(i);
+      cout << "stage " << i << endl;
+      Print();
     }
 
     Print();
@@ -244,6 +246,7 @@ class Solver {
     for (int col = row; col < size_; ++col) {
       a[row][col] /= koef;
     }
+    b[row] /= koef;
   }
 
   void Print() {
