@@ -6,6 +6,10 @@
 #ifndef SYSTEM_SOLVER__FRACTION_H_
 #define SYSTEM_SOLVER__FRACTION_H_
 
+int lcd(int a, int b) {
+  return a / __gcd(a, b) * b;
+}
+
 class Fraction {
  public:
   int numerator, denominator;
@@ -16,14 +20,14 @@ class Fraction {
   }
 
   void Normalize() {
-    if (numerator * denominator < 0) {
+    if (1ll * numerator * denominator < 0) {
       numerator = -1 * abs(numerator);
       denominator = abs(denominator);
     } else {
       numerator = abs(numerator);
       denominator = abs(denominator);
     }
-    int gcd = __gcd(abs(numerator), denominator);
+    int gcd = __gcd(abs(numerator), abs(denominator));
     numerator /= gcd;
     denominator /= gcd;
   }
@@ -41,6 +45,7 @@ class Fraction {
   Fraction operator-(const Fraction& otherFraction) const {
     int n = numerator * otherFraction.denominator - otherFraction.numerator * denominator;
     int d = denominator * otherFraction.denominator;
+
     return {n, d};
   }
   Fraction operator*(const Fraction& otherFraction) const {
@@ -87,7 +92,6 @@ class Fraction {
   }
 
   operator int() const {
-
     return *this;
   }
 
@@ -99,10 +103,6 @@ class Fraction {
 ostream& operator<<(ostream& os, const Fraction& dt) {
   os << dt.numerator << '/' << dt.denominator;
   return os;
-}
-
-int lcd(int a, int b) {
-  return a / __gcd(a, b) * b;
 }
 
 #endif //SYSTEM_SOLVER__FRACTION_H_

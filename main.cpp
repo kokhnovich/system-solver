@@ -36,8 +36,8 @@ class Solver {
     /// time complexity is O(n^3)
     for (int i = 0; i < size_; ++i) {
       Solve(i);
-      //cout << "stage " << i << endl;
-      //Print();
+      cout << "stage " << i << endl;
+      Print();
     }
 
     //Print();
@@ -45,10 +45,11 @@ class Solver {
 
     /// time complexity is O(n^2)
     for (int i = size_ - 1; i >= 0; --i) {
-      T cost = 0;
+
+      T cost = T(0);
       for (int j = i + 1; j < size_; ++j) {
         cost += a[i][j] * b[j];
-        a[i][j] = 0;
+        a[i][j] = T(0);
       }
       b[i] -= cost;
     }
@@ -248,10 +249,27 @@ void SolverFractionTests() {
   cout << "Solver passed tests with Fraction with best_in_matrix" << endl;
 }
 
+void SolveMyHomework(int n = 12) {
+  vector<vector<Fraction>> a = {{n + 1, n / 2, -n / 2, 1},
+                                {-n - 1, -(n + 1) / 2, (n + 1) / 2, -(n + 2) / 3},
+                                {-n + 1, (n + 1) / 2, -(n + 2) / 3, n - 1},
+                                {n / 3, -1, n, -n}};
+  vector<Fraction> b(4);
+  for (size_t i = 0; i < b.size(); ++i) {
+    b[i] = accumulate(a[i].begin(), a[i].end(), Fraction(0, 1));
+  }
+  auto solver = new Solver<Fraction>(a, b, SolverMethod::BEST_IN_MATRIX);
+  solver->Print();
+  solver->Solve();
+  solver->Print();
+}
+
 int main() {
-  FractionTests();
-  //SolverIntTests();
-  //SolverDoubleTests();
-  SolverFractionTests();
+//  FractionTests();
+//  SolverIntTests();
+//  SolverDoubleTests();
+//  SolverFractionTests();
+
+  SolveMyHomework();
   return 0;
 }
