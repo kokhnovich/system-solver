@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
-
-#include <utility>
+#include "profile.h"
+#include "test_runner.h"
 
 using namespace std;
 
@@ -82,21 +82,27 @@ class Fraction {
   }
 };
 
-
-ostream& operator<<(ostream& os, const Fraction& dt){
+ostream& operator<<(ostream& os, const Fraction& dt) {
   os << dt.numerator << '/' << dt.denominator;
   return os;
 }
 
-template<typename T>
+enum class SolverMethod {
+  DO_NOT_TOUCH,
+  BEST_IN_ROW,
+  BEST_IN_COLUMN,
+  BEST_IN_MATRIX
+};
+
+template<typename T, class Func=std::greater<T>>
 class Solver {
  public:
   /// matrix should be NxN
   // @TODO add ability to change function, default=std::max
   // @TODO add METHOD param
   // @TODO zero assertion
-  explicit Solver(vector<vector<T>> aa, vector<T> bb)
-      : a(move(aa)), b(move(bb)), ans_perm(vector<int>(a.size(), 0)) {
+  explicit Solver(vector<vector<T>> aa, vector<T> bb, const SolverMethod& method = SolverMethod::DO_NOT_TOUCH)
+      : a(move(aa)), b(move(bb)), ans_perm(vector<int>(a.size(), 0)), method_(method) {
     if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix error");
     size_ = a.size();
     for (int i = 0; i < size_; ++i) {
@@ -125,10 +131,26 @@ class Solver {
   }
 
   void Solve(int stage) {
-    //auto max_pos = max_in_the_sqr(start_i, start_j);
-    auto max_pos = make_pair(stage, stage);
-    //swap_rows(start_i, max_pos.first);
-    //swap_columns(start_j, max_pos.second);
+    switch (method_) {
+      case SolverMethod::DO_NOT_TOUCH : {
+        break;
+      }
+      case SolverMethod::BEST_IN_COLUMN : {
+        swap_rows(stage, best_in_the_col(stage));
+        break;
+      }
+      case SolverMethod::BEST_IN_ROW : {
+        swap_columns(stage, best_in_the_row(stage));
+        break;
+      }
+      case SolverMethod::BEST_IN_MATRIX : {
+        auto max_pos = best_in_the_sqr(stage, stage);
+        swap_rows(stage, max_pos.first);
+        swap_columns(stage, max_pos.second);
+        break;
+      }
+    }
+
     normalize_row(stage);
     for (int row = stage + 1; row < size_; ++row) {
       substract_str(row, stage);
@@ -137,21 +159,31 @@ class Solver {
   }
 
   /// returns number of column, where max is located
-  int max_in_the_row(int row) {
-    int best_column = 0;
-    for (int column = 1; column < size_; ++column) {
-      if (a[row][column] > a[row][best_column]) {
+  int best_in_the_row(int row) {
+    int best_column = row;
+    for (int column = row + 1; column < size_; ++column) {
+      if (Func()(a[row][column], a[row][best_column])) {
         best_column = column;
       }
     }
     return best_column;
   }
 
-  pair<int, int> max_in_the_sqr(int start_i, int start_j) {
+  int best_in_the_col(int col) {
+    int best_row = col;
+    for (int i = col + 1; i < size_; ++i) {
+      if (Func()(a[i][col], a[best_row][col])) {
+        best_row = i;
+      }
+    }
+    return best_row;
+  }
+
+  pair<int, int> best_in_the_sqr(int start_i, int start_j) {
     int best_i = start_i, best_j = start_j;
     for (int i = start_i; i < size_; ++i) {
       for (int j = start_j; j < size_; ++j) {
-        if (a[i][j] > a[best_i][best_j]) {
+        if (Func()(a[i][j], a[best_i][best_j])) {
           best_i = i, best_j = j;
         }
       }
@@ -171,7 +203,6 @@ class Solver {
     }
   }
 
-  /// think that from-row is normalized
   void substract_str(int row, int stage) {
     T koef = a[row][stage];
     for (int col = stage; col < size_; ++col) {
@@ -182,7 +213,6 @@ class Solver {
 
   void normalize_row(int row) {
     T koef = a[row][row];
-    //a[row][row] = 1;
     for (int col = row; col < size_; ++col) {
       a[row][col] /= koef;
     }
@@ -203,6 +233,7 @@ class Solver {
   vector<T> b;
   vector<int> ans_perm;
   int size_;
+  SolverMethod method_;
 };
 
 void FractionTests() {
@@ -224,6 +255,7 @@ void SolverIntTests() {
   vector<vector<int>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
   vector<int> b = {4, 19, 10};
   auto smth = new Solver<int>(a, b);
+  cout << smth->best_in_the_col(2) << endl;
   smth->Print();
   smth->Solve();
   smth->Print();
@@ -235,8 +267,8 @@ void SolverFractionTests() {
   vector<int> b = {4, 19, 10};
   vector<vector<Fraction>> test_a(a.size(), vector<Fraction>(a.size()));
   vector<Fraction> test_b(a.size());
-  for (int i = 0; i < a.size(); ++i) {
-    for (int j = 0; j < a.size(); ++j) {
+  for (size_t i = 0; i < a.size(); ++i) {
+    for (size_t j = 0; j < a.size(); ++j) {
       test_a[i][j] = Fraction(a[i][j], 1);
     }
     test_b[i] = Fraction(b[i], 1);
@@ -251,7 +283,7 @@ void SolverFractionTests() {
 
 int main() {
   FractionTests();
-  //SolverIntTests();
-  SolverFractionTests();
+  SolverIntTests();
+  //SolverFractionTests();
   return 0;
 }
