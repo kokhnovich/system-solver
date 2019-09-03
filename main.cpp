@@ -1,107 +1,10 @@
 #include <bits/stdc++.h>
+
 #include "profile.h"
 #include "test_runner.h"
+#include "Fraction.h"
 
 using namespace std;
-
-int lcd(int a, int b) {
-  return a / __gcd(a, b) * b;
-}
-
-class Fraction {
- public:
-  int numerator, denominator;
-
-  Fraction(int n = 1, int d = 1) : numerator(n), denominator(d) {
-    if (denominator == 0) throw logic_error("divide by zero");
-    Normalize();
-  }
-
-  void Normalize() {
-    if (numerator * denominator < 0) {
-      numerator = -1 * abs(numerator);
-      denominator = abs(denominator);
-    } else {
-      numerator = abs(numerator);
-      denominator = abs(denominator);
-    }
-    int gcd = __gcd(abs(numerator), denominator);
-    numerator /= gcd;
-    denominator /= gcd;
-  }
-
-  Fraction operator=(const Fraction& other) {
-    numerator = other.numerator, denominator = other.denominator;
-    return {numerator, denominator};
-  }
-
-  Fraction operator+(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.denominator + otherFraction.numerator * denominator;
-    int d = denominator * otherFraction.denominator;
-    return {n, d};
-  }
-  Fraction operator-(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.denominator - otherFraction.numerator * denominator;
-    int d = denominator * otherFraction.denominator;
-    return {n, d};
-  }
-  Fraction operator*(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.numerator;
-    int d = denominator * otherFraction.denominator;
-    return {n, d};
-  }
-  Fraction operator/(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.denominator;
-    int d = denominator * otherFraction.numerator;
-    return {n, d};
-  }
-
-  bool operator==(const Fraction& otherFraction) const {
-    return numerator == otherFraction.numerator && denominator == otherFraction.denominator;
-  }
-  bool operator!=(const Fraction& otherFraction) const {
-    return !(*this == otherFraction);
-  }
-  bool operator<(const Fraction& other) const {
-    int lcd_ = lcd(denominator, other.denominator);
-    return numerator * (lcd_ / denominator) < other.numerator * (lcd_ / denominator);
-  }
-  bool operator>(const Fraction& other) const {
-    return !(*this < other) && !(*this == other);
-  }
-
-  Fraction operator+=(const Fraction& otherFraction) {
-    *this = *this + otherFraction;
-    return *this;
-  }
-  Fraction operator-=(const Fraction& otherFraction) {
-    *this = *this - otherFraction;
-    return *this;
-  }
-  Fraction operator/=(const Fraction& otherFraction) {
-    *this = *this / otherFraction;
-    return *this;
-  }
-
-  ostream& operator<<(ostream& os) const {
-    os << numerator << "/" << denominator << endl;
-    return os;
-  }
-
-  operator int() const {
-
-    return *this;
-  }
-
-  void show() {
-    cout << numerator << "/" << denominator << endl;
-  }
-};
-
-ostream& operator<<(ostream& os, const Fraction& dt) {
-  os << dt.numerator << '/' << dt.denominator;
-  return os;
-}
 
 enum class SolverMethod {
   DO_NOT_TOUCH,
@@ -133,12 +36,12 @@ class Solver {
     /// time complexity is O(n^3)
     for (int i = 0; i < size_; ++i) {
       Solve(i);
-      cout << "stage " << i << endl;
-      Print();
+      //cout << "stage " << i << endl;
+      //Print();
     }
 
-    Print();
-    cout << endl;
+    //Print();
+    //cout << endl;
 
     /// time complexity is O(n^2)
     for (int i = size_ - 1; i >= 0; --i) {
@@ -257,7 +160,7 @@ class Solver {
       cout << b[i] << endl;
     }
     cout << "ans_perm: ";
-    for(const auto& i : ans_perm) {
+    for (const auto& i : ans_perm) {
       cout << i << " ";
     }
     cout << endl;
@@ -277,7 +180,7 @@ void FractionTests() {
   assert(b - a == Fraction(1, -6));
   assert(a * b == Fraction(1, 6));
   assert(a / b == Fraction(6, 4));
-  assert(Fraction(3, 26) < Fraction(51 ,52));
+  assert(Fraction(3, 26) < Fraction(51, 52));
   cout << "Fraction passed tests" << endl;
 }
 

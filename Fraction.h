@@ -1,0 +1,108 @@
+//
+// Created by user on 3.09.19.
+//
+#pragma once
+
+#ifndef SYSTEM_SOLVER__FRACTION_H_
+#define SYSTEM_SOLVER__FRACTION_H_
+
+class Fraction {
+ public:
+  int numerator, denominator;
+
+  Fraction(int n = 1, int d = 1) : numerator(n), denominator(d) {
+    if (denominator == 0) throw logic_error("divide by zero");
+    Normalize();
+  }
+
+  void Normalize() {
+    if (numerator * denominator < 0) {
+      numerator = -1 * abs(numerator);
+      denominator = abs(denominator);
+    } else {
+      numerator = abs(numerator);
+      denominator = abs(denominator);
+    }
+    int gcd = __gcd(abs(numerator), denominator);
+    numerator /= gcd;
+    denominator /= gcd;
+  }
+
+  Fraction operator=(const Fraction& other) {
+    numerator = other.numerator, denominator = other.denominator;
+    return {numerator, denominator};
+  }
+
+  Fraction operator+(const Fraction& otherFraction) const {
+    int n = numerator * otherFraction.denominator + otherFraction.numerator * denominator;
+    int d = denominator * otherFraction.denominator;
+    return {n, d};
+  }
+  Fraction operator-(const Fraction& otherFraction) const {
+    int n = numerator * otherFraction.denominator - otherFraction.numerator * denominator;
+    int d = denominator * otherFraction.denominator;
+    return {n, d};
+  }
+  Fraction operator*(const Fraction& otherFraction) const {
+    int n = numerator * otherFraction.numerator;
+    int d = denominator * otherFraction.denominator;
+    return {n, d};
+  }
+  Fraction operator/(const Fraction& otherFraction) const {
+    int n = numerator * otherFraction.denominator;
+    int d = denominator * otherFraction.numerator;
+    return {n, d};
+  }
+
+  bool operator==(const Fraction& otherFraction) const {
+    return numerator == otherFraction.numerator && denominator == otherFraction.denominator;
+  }
+  bool operator!=(const Fraction& otherFraction) const {
+    return !(*this == otherFraction);
+  }
+  bool operator<(const Fraction& other) const {
+    int lcd_ = lcd(denominator, other.denominator);
+    return numerator * (lcd_ / denominator) < other.numerator * (lcd_ / denominator);
+  }
+  bool operator>(const Fraction& other) const {
+    return !(*this < other) && !(*this == other);
+  }
+
+  Fraction operator+=(const Fraction& otherFraction) {
+    *this = *this + otherFraction;
+    return *this;
+  }
+  Fraction operator-=(const Fraction& otherFraction) {
+    *this = *this - otherFraction;
+    return *this;
+  }
+  Fraction operator/=(const Fraction& otherFraction) {
+    *this = *this / otherFraction;
+    return *this;
+  }
+
+  ostream& operator<<(ostream& os) const {
+    os << numerator << "/" << denominator << endl;
+    return os;
+  }
+
+  operator int() const {
+
+    return *this;
+  }
+
+  void show() {
+    cout << numerator << "/" << denominator << endl;
+  }
+};
+
+ostream& operator<<(ostream& os, const Fraction& dt) {
+  os << dt.numerator << '/' << dt.denominator;
+  return os;
+}
+
+int lcd(int a, int b) {
+  return a / __gcd(a, b) * b;
+}
+
+#endif //SYSTEM_SOLVER__FRACTION_H_

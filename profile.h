@@ -1,17 +1,9 @@
 #pragma once
 
-#include <chrono>
-#include <iostream>
-#include <optional>
-#include <string>
-#include <sstream>
-
 class LogDuration {
  public:
   explicit LogDuration(const std::string& msg = "")
-      : message(msg + ": ")
-      , start(std::chrono::steady_clock::now())
-  {
+      : message(msg + ": "), start(std::chrono::steady_clock::now()) {
   }
 
   ~LogDuration() {
