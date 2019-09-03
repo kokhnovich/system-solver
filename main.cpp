@@ -4,6 +4,10 @@
 
 using namespace std;
 
+int lcd(int a, int b) {
+  return a / __gcd(a, b) * b;
+}
+
 class Fraction {
  public:
   int numerator, denominator;
@@ -58,6 +62,13 @@ class Fraction {
   bool operator!=(const Fraction& otherFraction) const {
     return !(*this == otherFraction);
   }
+  bool operator<(const Fraction& other) const {
+    int lcd_ = lcd(denominator, other.denominator);
+    return numerator * (lcd_ / denominator) < other.numerator * (lcd_ / denominator);
+  }
+  bool operator>(const Fraction& other) const {
+    return !(*this < other) && !(*this == other);
+  }
 
   Fraction operator+=(const Fraction& otherFraction) {
     *this = *this + otherFraction;
@@ -77,6 +88,11 @@ class Fraction {
     return os;
   }
 
+  operator int() const {
+
+    return *this;
+  }
+
   void show() {
     cout << numerator << "/" << denominator << endl;
   }
@@ -94,16 +110,19 @@ enum class SolverMethod {
   BEST_IN_MATRIX
 };
 
+/** matrix should be NxN
+ *  template class Func can be, for example, std:greater<T> or std:less<T>
+ *
+**/
 template<typename T, class Func=std::greater<T>>
 class Solver {
  public:
-  /// matrix should be NxN
   // @TODO add ability to change function, default=std::max
   // @TODO add METHOD param
   // @TODO zero assertion
   explicit Solver(vector<vector<T>> aa, vector<T> bb, const SolverMethod& method = SolverMethod::DO_NOT_TOUCH)
       : a(move(aa)), b(move(bb)), ans_perm(vector<int>(a.size(), 0)), method_(method) {
-    if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix error");
+    if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix");
     size_ = a.size();
     for (int i = 0; i < size_; ++i) {
       ans_perm[i] = i;
@@ -133,6 +152,12 @@ class Solver {
   void Solve(int stage) {
     switch (method_) {
       case SolverMethod::DO_NOT_TOUCH : {
+        for (int row = stage; row < size_; ++row) {
+          if (a[row][stage] != T(0)) {
+            swap_rows(stage, row);
+            break;
+          }
+        }
         break;
       }
       case SolverMethod::BEST_IN_COLUMN : {
@@ -150,6 +175,7 @@ class Solver {
         break;
       }
     }
+    if (a[stage][stage] == T(0)) return;
 
     normalize_row(stage);
     for (int row = stage + 1; row < size_; ++row) {
@@ -192,11 +218,13 @@ class Solver {
   }
 
   void swap_rows(int row1, int row2) {
+    if (row1 == row2) return;
     swap(a[row1], a[row2]);
     swap(b[row1], b[row2]);
   }
 
   void swap_columns(int col1, int col2) {
+    if (col1 == col2) return;
     swap(ans_perm[col1], ans_perm[col2]);
     for (int row = 0; row < size_; ++row) {
       swap(a[row][col1], a[row][col2]);
@@ -225,6 +253,10 @@ class Solver {
       }
       cout << b[i] << endl;
     }
+    cout << "ans_perm: ";
+    for(const auto& i : ans_perm) {
+      cout << i << " ";
+    }
     cout << endl;
   }
 
@@ -239,15 +271,10 @@ class Solver {
 void FractionTests() {
   Fraction a(1, 2), b(1, 3);
   assert(a + b == Fraction(5, 6));
-  assert(b + a == Fraction(5, 6));
-  assert(a - b == Fraction(1, 6));
-  assert(b - a == Fraction(-1, 6));
   assert(b - a == Fraction(1, -6));
-  assert(b - a != Fraction(1, 6));
-
   assert(a * b == Fraction(1, 6));
-  assert(a / b == Fraction(3, 2));
   assert(a / b == Fraction(6, 4));
+  assert(Fraction(3, 26) < Fraction(51 ,52));
   cout << "Fraction passed tests" << endl;
 }
 
@@ -255,11 +282,27 @@ void SolverIntTests() {
   vector<vector<int>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
   vector<int> b = {4, 19, 10};
   auto smth = new Solver<int>(a, b);
-  cout << smth->best_in_the_col(2) << endl;
   smth->Print();
   smth->Solve();
   smth->Print();
-  cout << "Solver passed tests with int" << endl;
+  cout << "Solver passed tests with int with no method" << endl;
+  /*
+  smth = new Solver<int>(a, b, SolverMethod::BEST_IN_COLUMN);
+  smth->Print();
+  smth->Solve();
+  smth->Print();
+  cout << "Solver passed tests with int with best_in_column" << endl;
+   */
+}
+
+void SolverDoubleTests() {
+  vector<vector<double>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
+  vector<double> b = {4, 19, 10};
+  auto smth = new Solver<double>(a, b);
+  smth->Print();
+  smth->Solve();
+  smth->Print();
+  cout << "Solver passed tests with double" << endl;
 }
 
 void SolverFractionTests() {
@@ -278,12 +321,31 @@ void SolverFractionTests() {
   solver->Print();
   solver->Solve();
   solver->Print();
-  cout << "Solver passed tests with Fraction" << endl;
+  cout << "Solver passed tests with Fraction with no method" << endl;
+
+  solver = new Solver<Fraction>(test_a, test_b, SolverMethod::BEST_IN_COLUMN);
+  solver->Print();
+  solver->Solve();
+  solver->Print();
+  cout << "Solver passed tests with Fraction with best_in_col" << endl;
+
+  solver = new Solver<Fraction>(test_a, test_b, SolverMethod::BEST_IN_ROW);
+  solver->Print();
+  solver->Solve();
+  solver->Print();
+  cout << "Solver passed tests with Fraction with best_in_row" << endl;
+
+  solver = new Solver<Fraction>(test_a, test_b, SolverMethod::BEST_IN_MATRIX);
+  solver->Print();
+  solver->Solve();
+  solver->Print();
+  cout << "Solver passed tests with Fraction with best_in_matrix" << endl;
 }
 
 int main() {
   FractionTests();
-  SolverIntTests();
-  //SolverFractionTests();
+  //SolverIntTests();
+  //SolverDoubleTests();
+  SolverFractionTests();
   return 0;
 }
