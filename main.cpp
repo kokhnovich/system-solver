@@ -3,6 +3,7 @@
 #include "profile.h"
 #include "test_runner.h"
 #include "Fraction.h"
+#include "lu-decomposition.cpp"
 
 using namespace std;
 
@@ -17,12 +18,19 @@ enum class SolverMethod {
  *  template class Func can be, for example, std:greater<T> or std:less<T>
  *
 **/
+
+Fraction abs(const Fraction& val) {
+  return Fraction(abs(val.numerator), abs(val.denominator));
+}
+
+template<class T>
+struct greater_using_abs {
+  bool operator()(const T& x, const T& y) const { return abs(x) > abs(y); }
+};
+
 template<typename T, class Func=std::greater<T>>
 class Solver {
  public:
-  // @TODO add ability to change function, default=std::max
-  // @TODO add METHOD param
-  // @TODO zero assertion
   explicit Solver(vector<vector<T>> aa, vector<T> bb, const SolverMethod& method = SolverMethod::DO_NOT_TOUCH)
       : a(move(aa)), b(move(bb)), ans_perm(vector<int>(a.size(), 0)), method_(method) {
     if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix");
@@ -32,10 +40,10 @@ class Solver {
     }
   }
 
-  void Solve() {
+  vector<T> Solve() {
     /// time complexity is O(n^3)
     for (int i = 0; i < size_; ++i) {
-      Solve(i);
+      SolveStage(i);
       cout << "stage " << i << endl;
       Print();
     }
@@ -45,7 +53,6 @@ class Solver {
 
     /// time complexity is O(n^2)
     for (int i = size_ - 1; i >= 0; --i) {
-
       T cost = T(0);
       for (int j = i + 1; j < size_; ++j) {
         cost += a[i][j] * b[j];
@@ -53,9 +60,15 @@ class Solver {
       }
       b[i] -= cost;
     }
+    vector<T> ans(size_);
+    for (int i = 0; i < size_; ++i) {
+      ans[ans_perm[i]] = b[i];
+    }
+    return ans;
   }
 
-  void Solve(int stage) {
+  void SolveStage(int stage) {
+    cout << "Решаем подматрицу начиная с " << stage << " " << stage << endl;
     switch (method_) {
       case SolverMethod::DO_NOT_TOUCH : {
         for (int row = stage; row < size_; ++row) {
@@ -124,12 +137,14 @@ class Solver {
   }
 
   void swap_rows(int row1, int row2) {
+    cout << "Меняем местами строки " << row1 << " " << row2 << endl;
     if (row1 == row2) return;
     swap(a[row1], a[row2]);
     swap(b[row1], b[row2]);
   }
 
   void swap_columns(int col1, int col2) {
+    cout << "Меняем местами столбики " << col1 << " " << col2 << endl;
     if (col1 == col2) return;
     swap(ans_perm[col1], ans_perm[col2]);
     for (int row = 0; row < size_; ++row) {
@@ -160,9 +175,9 @@ class Solver {
       }
       cout << b[i] << endl;
     }
-    cout << "ans_perm: ";
+    cout << "Порядок неизвестных: ";
     for (const auto& i : ans_perm) {
-      cout << i << " ";
+      cout << i + 1 << " ";
     }
     cout << endl;
   }
@@ -250,17 +265,24 @@ void SolverFractionTests() {
 }
 
 void SolveMyHomework(int n = 12) {
+  cout
+      << "Ахтунг! Код решает частный случай для системы, имеющей решения с одинаковым количеством строк и неизвестных. Только для подписчеков моего гитхаба:)";
+  cout << "n = 12\nmatrix is\n";
   vector<vector<Fraction>> a = {{n + 1, n / 2, -n / 2, 1},
                                 {-n - 1, -(n + 1) / 2, (n + 1) / 2, -(n + 2) / 3},
                                 {-n + 1, (n + 1) / 2, -(n + 2) / 3, n - 1},
                                 {n / 3, -1, n, -n}};
   vector<Fraction> b(4);
   for (size_t i = 0; i < b.size(); ++i) {
-    b[i] = accumulate(a[i].begin(), a[i].end(), Fraction(0, 1));
+    // b[i] = accumulate(a[i].begin(), a[i].end(), Fraction(0, 1));
+    b[i] = a[i][0] + Fraction(1) * a[i][1] + Fraction(1) * a[i][2] + Fraction(1) * a[i][3];
   }
-  auto solver = new Solver<Fraction>(a, b, SolverMethod::BEST_IN_MATRIX);
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(a, b, SolverMethod::BEST_IN_MATRIX);
   solver->Print();
-  solver->Solve();
+  for (auto& i : solver->Solve()) {
+    cout << i << " ";
+  }
+  cout << endl;
   solver->Print();
 }
 
