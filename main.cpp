@@ -1,5 +1,4 @@
 #include <bits/stdc++.h>
-
 #include "profile.h"
 #include "test_runner.h"
 #include "Fraction.h"
@@ -16,8 +15,13 @@ enum class SolverMethod {
 
 /** matrix should be NxN
  *  template class Func can be, for example, std:greater<T> or std:less<T>
+ *  Func must be linear!
  *
 **/
+
+// @TODO norm tests
+// @TODO optimize using profiler
+// @TODO add LU-decomposition
 
 Fraction abs(const Fraction& val) {
   return Fraction(abs(val.numerator), abs(val.denominator));
@@ -40,7 +44,7 @@ class Solver {
     }
   }
 
-  vector<T> Solve() {
+  vector<T> GetSolution() {
     /// time complexity is O(n^3)
     for (int i = 0; i < size_; ++i) {
       SolveStage(i);
@@ -66,6 +70,55 @@ class Solver {
     }
     return ans;
   }
+
+  /// returns number of column, where max is located
+  int best_in_the_row(int row) {
+    int best_column = row;
+    for (int column = row + 1; column < size_; ++column) {
+      if (Func()(a[row][column], a[row][best_column])) {
+        best_column = column;
+      }
+    }
+    return best_column;
+  }
+
+  int best_in_the_col(int col) {
+    int best_row = col;
+    for (int i = col + 1; i < size_; ++i) {
+      if (Func()(a[i][col], a[best_row][col])) {
+        best_row = i;
+      }
+    }
+    return best_row;
+  }
+
+  pair<int, int> best_in_the_sqr(int start_i, int start_j) {
+    int best_i = start_i, best_j = start_j;
+    for (int i = start_i; i < size_; ++i) {
+      for (int j = start_j; j < size_; ++j) {
+        if (Func()(a[i][j], a[best_i][best_j])) {
+          best_i = i, best_j = j;
+        }
+      }
+    }
+    return make_pair(best_i, best_j);
+  }
+
+  void Print() {
+    for (int i = 0; i < size_; ++i) {
+      for (auto& j : a[i]) {
+        cout << j << " ";
+      }
+      cout << b[i] << endl;
+    }
+    cout << "Порядок неизвестных: ";
+    for (const auto& i : ans_perm) {
+      cout << i + 1 << " ";
+    }
+    cout << endl;
+  }
+
+ private:
 
   void SolveStage(int stage) {
     cout << "Решаем подматрицу начиная с " << stage << " " << stage << endl;
@@ -103,39 +156,6 @@ class Solver {
 
   }
 
-  /// returns number of column, where max is located
-  int best_in_the_row(int row) {
-    int best_column = row;
-    for (int column = row + 1; column < size_; ++column) {
-      if (Func()(a[row][column], a[row][best_column])) {
-        best_column = column;
-      }
-    }
-    return best_column;
-  }
-
-  int best_in_the_col(int col) {
-    int best_row = col;
-    for (int i = col + 1; i < size_; ++i) {
-      if (Func()(a[i][col], a[best_row][col])) {
-        best_row = i;
-      }
-    }
-    return best_row;
-  }
-
-  pair<int, int> best_in_the_sqr(int start_i, int start_j) {
-    int best_i = start_i, best_j = start_j;
-    for (int i = start_i; i < size_; ++i) {
-      for (int j = start_j; j < size_; ++j) {
-        if (Func()(a[i][j], a[best_i][best_j])) {
-          best_i = i, best_j = j;
-        }
-      }
-    }
-    return make_pair(best_i, best_j);
-  }
-
   void swap_rows(int row1, int row2) {
     cout << "Меняем местами строки " << row1 << " " << row2 << endl;
     if (row1 == row2) return;
@@ -152,14 +172,6 @@ class Solver {
     }
   }
 
-  void substract_str(int row, int stage) {
-    T koef = a[row][stage];
-    for (int col = stage; col < size_; ++col) {
-      a[row][col] -= a[stage][col] * koef;
-    }
-    b[row] -= b[stage] * koef;
-  }
-
   void normalize_row(int row) {
     T koef = a[row][row];
     for (int col = row; col < size_; ++col) {
@@ -168,101 +180,20 @@ class Solver {
     b[row] /= koef;
   }
 
-  void Print() {
-    for (int i = 0; i < size_; ++i) {
-      for (auto& j : a[i]) {
-        cout << j << " ";
-      }
-      cout << b[i] << endl;
+  void substract_str(int row, int stage) {
+    T koef = a[row][stage];
+    for (int col = stage; col < size_; ++col) {
+      a[row][col] -= a[stage][col] * koef;
     }
-    cout << "Порядок неизвестных: ";
-    for (const auto& i : ans_perm) {
-      cout << i + 1 << " ";
-    }
-    cout << endl;
+    b[row] -= b[stage] * koef;
   }
 
- private:
   vector<vector<T>> a;
   vector<T> b;
   vector<int> ans_perm;
   int size_;
   SolverMethod method_;
 };
-
-void FractionTests() {
-  Fraction a(1, 2), b(1, 3);
-  assert(a + b == Fraction(5, 6));
-  assert(b - a == Fraction(1, -6));
-  assert(a * b == Fraction(1, 6));
-  assert(a / b == Fraction(6, 4));
-  assert(Fraction(3, 26) < Fraction(51, 52));
-  cout << "Fraction passed tests" << endl;
-}
-
-void SolverIntTests() {
-  vector<vector<int>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
-  vector<int> b = {4, 19, 10};
-  auto smth = new Solver<int>(a, b);
-  smth->Print();
-  smth->Solve();
-  smth->Print();
-  cout << "Solver passed tests with int with no method" << endl;
-  /*
-  smth = new Solver<int>(a, b, SolverMethod::BEST_IN_COLUMN);
-  smth->Print();
-  smth->Solve();
-  smth->Print();
-  cout << "Solver passed tests with int with best_in_column" << endl;
-   */
-}
-
-void SolverDoubleTests() {
-  vector<vector<double>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
-  vector<double> b = {4, 19, 10};
-  auto smth = new Solver<double>(a, b);
-  smth->Print();
-  smth->Solve();
-  smth->Print();
-  cout << "Solver passed tests with double" << endl;
-}
-
-void SolverFractionTests() {
-  vector<vector<int>> a = {{1, 2, 3}, {4, 9, 15}, {3, 5, 7}};
-  vector<int> b = {4, 19, 10};
-  vector<vector<Fraction>> test_a(a.size(), vector<Fraction>(a.size()));
-  vector<Fraction> test_b(a.size());
-  for (size_t i = 0; i < a.size(); ++i) {
-    for (size_t j = 0; j < a.size(); ++j) {
-      test_a[i][j] = Fraction(a[i][j], 1);
-    }
-    test_b[i] = Fraction(b[i], 1);
-  }
-
-  auto solver = new Solver<Fraction>(test_a, test_b);
-  solver->Print();
-  solver->Solve();
-  solver->Print();
-  cout << "Solver passed tests with Fraction with no method" << endl;
-
-  solver = new Solver<Fraction>(test_a, test_b, SolverMethod::BEST_IN_COLUMN);
-  solver->Print();
-  solver->Solve();
-  solver->Print();
-  cout << "Solver passed tests with Fraction with best_in_col" << endl;
-
-  solver = new Solver<Fraction>(test_a, test_b, SolverMethod::BEST_IN_ROW);
-  solver->Print();
-  solver->Solve();
-  solver->Print();
-  cout << "Solver passed tests with Fraction with best_in_row" << endl;
-
-  solver = new Solver<Fraction>(test_a, test_b, SolverMethod::BEST_IN_MATRIX);
-  solver->Print();
-  solver->Solve();
-  solver->Print();
-  cout << "Solver passed tests with Fraction with best_in_matrix" << endl;
-}
 
 void SolveMyHomework(int n = 12) {
   cout
@@ -279,16 +210,18 @@ void SolveMyHomework(int n = 12) {
   }
   auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(a, b, SolverMethod::BEST_IN_MATRIX);
   solver->Print();
-  for (auto& i : solver->Solve()) {
+  for (auto& i : solver->GetSolution()) {
     cout << i << " ";
   }
   cout << endl;
   solver->Print();
 }
 
+#include "tests.cpp"
+
 int main() {
 //  FractionTests();
-//  SolverIntTests();
+  SolverIntTests();
 //  SolverDoubleTests();
 //  SolverFractionTests();
 
