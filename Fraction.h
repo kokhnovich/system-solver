@@ -87,7 +87,7 @@ class Fraction {
   }
 
   ostream& operator<<(ostream& os) const {
-    os << numerator << "/" << denominator << endl;
+    os << setw(7) << numerator << "/" << denominator << endl;
     return os;
   }
 
@@ -96,12 +96,13 @@ class Fraction {
   }
 
   void show() {
-    cout << numerator << "/" << denominator << endl;
+    cout << setw(7) << numerator << "/" << denominator << endl;
   }
 };
 
 ostream& operator<<(ostream& os, const Fraction& dt) {
-  os << dt.numerator << '/' << dt.denominator;
+  // os << fixed << setprecision(5) << (double) dt.numerator / dt.denominator;
+  os << setw(5) << dt.numerator << '/' << dt.denominator;
   return os;
 }
 

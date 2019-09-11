@@ -2,7 +2,6 @@
 #include "profile.h"
 #include "test_runner.h"
 #include "Fraction.h"
-#include "lu-decomposition.cpp"
 
 using namespace std;
 
@@ -13,6 +12,20 @@ enum class SolverMethod {
   BEST_IN_MATRIX
 };
 
+template<typename T>
+vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
+  size_t n = A.size();
+  vector<vector<T>> R(n, vector<T>(n, T(0)));
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) {
+      for (size_t k = 0; k < n; k++) {
+        R[i][j] += A[i][k] * B[k][j];
+      }
+    }
+  }
+  return R;
+}
+
 /** matrix should be NxN
  *  template class Func can be, for example, std:greater<T> or std:less<T>
  *  Func must be linear!
@@ -22,6 +35,7 @@ enum class SolverMethod {
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO add LU-decomposition
+// @TODO rethink architecture
 
 Fraction abs(const Fraction& val) {
   return Fraction(abs(val.numerator), abs(val.denominator));
@@ -36,13 +50,38 @@ template<typename T, class Func=std::greater<T>>
 class Solver {
  public:
   explicit Solver(vector<vector<T>> aa, vector<T> bb, const SolverMethod& method = SolverMethod::DO_NOT_TOUCH)
-      : a(move(aa)), b(move(bb)), ans_perm(vector<int>(a.size(), 0)), method_(method) {
+      : a(move(aa)),
+        b(move(bb)),
+        ans_perm(vector<int>(a.size(), 0)),
+        method_(method),
+        L(vector<vector<T>>(a.size(), vector<T>(a.size(), 0))) {
     if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix");
     size_ = a.size();
     for (int i = 0; i < size_; ++i) {
       ans_perm[i] = i;
     }
   }
+
+  pair<vector<vector<T>>, vector<vector<T>>> doLU() {
+    for (int i = 0; i < size_; ++i) {
+      SolveStage(i, true);
+      // cout << "stage " << i << endl;
+      // Print();
+    }
+
+    Print();
+    vector<vector<T>> ans(size_, vector<T>(size_, T(0)));
+
+
+    // @TODO chto ya delau
+    for(int i = 0; i < size_; ++i) {
+      for(int j = 0; j < size_; ++j) {
+        ans[j][ans_perm[i]] = a[j][i];
+      }
+    }
+
+    return make_pair(L, ans);
+  };
 
   vector<T> GetSolution() {
     /// time complexity is O(n^3)
@@ -120,10 +159,11 @@ class Solver {
 
  private:
 
-  void SolveStage(int stage) {
-    cout << "Решаем подматрицу начиная с " << stage << " " << stage << endl;
+  void SolveStage(int stage, bool lu = false) {
+    cout << "Solve stage " << stage << endl;
     switch (method_) {
       case SolverMethod::DO_NOT_TOUCH : {
+        if (lu) break;
         for (int row = stage; row < size_; ++row) {
           if (a[row][stage] != T(0)) {
             swap_rows(stage, row);
@@ -149,22 +189,29 @@ class Solver {
     }
     if (a[stage][stage] == T(0)) return;
 
-    normalize_row(stage);
-    for (int row = stage + 1; row < size_; ++row) {
-      substract_str(row, stage);
-    }
+    if (!lu) {
+      normalize_row(stage);
+      for (int row = stage + 1; row < size_; ++row) {
+        substract_str(row, stage);
+      }
+    } else {
+      L[stage][stage] = 1;
+      for (int row = stage + 1; row < size_; ++row) {
+        substract_str(row, stage, false);
+      }
 
+    }
   }
 
   void swap_rows(int row1, int row2) {
-    cout << "Меняем местами строки " << row1 << " " << row2 << endl;
+    cout << "Swapped rows " << row1 << " " << row2 << endl;
     if (row1 == row2) return;
     swap(a[row1], a[row2]);
     swap(b[row1], b[row2]);
   }
 
   void swap_columns(int col1, int col2) {
-    cout << "Меняем местами столбики " << col1 << " " << col2 << endl;
+    cout << "Swapped columns " << col1 << " " << col2 << endl;
     if (col1 == col2) return;
     swap(ans_perm[col1], ans_perm[col2]);
     for (int row = 0; row < size_; ++row) {
@@ -172,37 +219,63 @@ class Solver {
     }
   }
 
-  void normalize_row(int row) {
+  void normalize_row(int row, bool work_with_ans = true) {
     T koef = a[row][row];
     for (int col = row; col < size_; ++col) {
       a[row][col] /= koef;
     }
-    b[row] /= koef;
+    if (work_with_ans) {
+      b[row] /= koef;
+    }
   }
 
-  void substract_str(int row, int stage) {
-    T koef = a[row][stage];
+  void substract_str(int row, int stage, bool work_with_ans = true) {
+    T koef;
+    if (work_with_ans) {
+      koef = a[row][stage];
+    } else {
+      koef = a[row][stage] / a[stage][stage];
+      int diff = row - stage;
+      L[row][stage] = koef;
+    }
     for (int col = stage; col < size_; ++col) {
       a[row][col] -= a[stage][col] * koef;
     }
-    b[row] -= b[stage] * koef;
+    if (work_with_ans) {
+      b[row] -= b[stage] * koef;
+    }
   }
 
-  vector<vector<T>> a;
+  vector<vector<T>> a, L, original;
   vector<T> b;
   vector<int> ans_perm;
   int size_;
   SolverMethod method_;
 };
 
+template<typename T>
+void PrintMatrix(const vector<vector<T>>& a, const string& message = "") {
+  cout << message << ":\n";
+  for (auto& i : a) {
+    for (auto& j : i) {
+      cout << j << " ";
+    }
+    cout << endl;
+  }
+  cout << "\n\n";
+}
+
+template<typename T>
+vector<vector<T>> getHWMatrix(int n) {
+  return {{n + 1, n / 2, -n / 2, 1},
+          {-n - 1, -(n + 1) / 2, (n + 1) / 2, -(n + 2) / 3},
+          {-n + 1, (n + 1) / 2, -(n + 2) / 3, n - 1},
+          {n / 3, -1, n, -n}};
+}
+
 void SolveMyHomework(int n = 12) {
-  cout
-      << "Ахтунг! Код решает частный случай для системы, имеющей решения с одинаковым количеством строк и неизвестных. Только для подписчеков моего гитхаба:)";
   cout << "n = 12\nmatrix is\n";
-  vector<vector<Fraction>> a = {{n + 1, n / 2, -n / 2, 1},
-                                {-n - 1, -(n + 1) / 2, (n + 1) / 2, -(n + 2) / 3},
-                                {-n + 1, (n + 1) / 2, -(n + 2) / 3, n - 1},
-                                {n / 3, -1, n, -n}};
+  vector<vector<Fraction>> a = getHWMatrix<Fraction>(n);
   vector<Fraction> b(4);
   for (size_t i = 0; i < b.size(); ++i) {
     // b[i] = accumulate(a[i].begin(), a[i].end(), Fraction(0, 1));
@@ -220,11 +293,25 @@ void SolveMyHomework(int n = 12) {
 #include "tests.cpp"
 
 int main() {
-//  FractionTests();
-  SolverIntTests();
-//  SolverDoubleTests();
-//  SolverFractionTests();
+  // FractionTests();
+  // SolverIntTests();
+  // SolverDoubleTests();
+  // SolverFractionTests();
 
-  SolveMyHomework();
+  // SolveMyHomework();
+  auto A = getHWMatrix<Fraction>(12);
+  PrintMatrix(A);
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(A, A[0], SolverMethod::BEST_IN_ROW);
+  auto solution = solver->doLU();
+
+  PrintMatrix(solution.first, "L");
+
+  PrintMatrix(solution.second, "U");
+
+  auto res = mult(solution.first, solution.second);
+  PrintMatrix(res, "LU");
+
+  cout << endl << (A == res) << endl;
+
   return 0;
 }
