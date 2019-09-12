@@ -35,7 +35,8 @@ vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO add LU-decomposition
-// @TODO rethink architecture
+// @TODO architecture + memory optimizations
+
 
 Fraction abs(const Fraction& val) {
   return Fraction(abs(val.numerator), abs(val.denominator));
@@ -54,7 +55,8 @@ class Solver {
         b(move(bb)),
         ans_perm(vector<int>(a.size(), 0)),
         method_(method),
-        L(vector<vector<T>>(a.size(), vector<T>(a.size(), 0))) {
+        L(vector<vector<T>>(a.size(), vector<T>(a.size(), T(0)))),
+        P(vector<vector<T>>(a.size(), vector<T>(a.size(), T(0)))) {
     if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix");
     size_ = a.size();
     for (int i = 0; i < size_; ++i) {
@@ -62,7 +64,7 @@ class Solver {
     }
   }
 
-  pair<vector<vector<T>>, vector<vector<T>>> doLU() {
+  tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> LUP_Decomposition() {
     for (int i = 0; i < size_; ++i) {
       SolveStage(i, true);
       // cout << "stage " << i << endl;
@@ -72,15 +74,14 @@ class Solver {
     Print();
     vector<vector<T>> ans(size_, vector<T>(size_, T(0)));
 
-
-    // @TODO chto ya delau
-    for(int i = 0; i < size_; ++i) {
-      for(int j = 0; j < size_; ++j) {
+    for (int i = 0; i < size_; ++i) {
+      P[i][ans_perm[i]] = 1;
+      for (int j = 0; j < size_; ++j) {
         ans[j][ans_perm[i]] = a[j][i];
       }
     }
 
-    return make_pair(L, ans);
+    return make_tuple(L, a, P);
   };
 
   vector<T> GetSolution() {
@@ -246,7 +247,7 @@ class Solver {
     }
   }
 
-  vector<vector<T>> a, L, original;
+  vector<vector<T>> a, L, P;
   vector<T> b;
   vector<int> ans_perm;
   int size_;
@@ -290,6 +291,28 @@ void SolveMyHomework(int n = 12) {
   solver->Print();
 }
 
+void SolveMyHomeWorkAboutLU() {
+  auto A = getHWMatrix<Fraction>(12);
+  vector<vector<Fraction>> L, U, P;
+  PrintMatrix(A);
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(A, A[0], SolverMethod::BEST_IN_ROW);
+  tie(L, U, P) = solver->LUP_Decomposition();
+
+  PrintMatrix(L, "L");
+
+  PrintMatrix(U, "U");
+
+  PrintMatrix(P, "P");
+
+  auto res = mult(L, U);
+  PrintMatrix(res, "LU");
+  res = mult(res, P);
+  PrintMatrix(res, "A = LUP");
+
+  cout << endl << (A == res ? "works nice (:" : "smth goes wrong ):") << endl;
+
+}
+
 #include "tests.cpp"
 
 int main() {
@@ -299,19 +322,6 @@ int main() {
   // SolverFractionTests();
 
   // SolveMyHomework();
-  auto A = getHWMatrix<Fraction>(12);
-  PrintMatrix(A);
-  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(A, A[0], SolverMethod::BEST_IN_ROW);
-  auto solution = solver->doLU();
-
-  PrintMatrix(solution.first, "L");
-
-  PrintMatrix(solution.second, "U");
-
-  auto res = mult(solution.first, solution.second);
-  PrintMatrix(res, "LU");
-
-  cout << endl << (A == res) << endl;
-
+  SolveMyHomeWorkAboutLU();
   return 0;
 }
