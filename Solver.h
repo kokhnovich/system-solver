@@ -5,6 +5,23 @@
 #ifndef SYSTEM_SOLVER__SOLVER_H_
 #define SYSTEM_SOLVER__SOLVER_H_
 
+enum class SolverMethod {
+  DO_NOT_TOUCH,
+  BEST_IN_ROW,
+  BEST_IN_COLUMN,
+  BEST_IN_MATRIX
+};
+
+/** matrix should be NxN
+ *  template class Func can be, for example, std:greater<T> or std:less<T>
+ *  Func must be linear!
+ *  T for elements of A
+ *
+ *  @TODO
+ *  //T2 for b: T2=T , if b is a vector
+ *  //          T2=vector<T> if b is a matrix // you should also implement operator-= for two vector<T>
+ *
+**/
 template<typename T, class Func=std::greater<T>>
 class Solver {
  private:
@@ -28,14 +45,9 @@ class Solver {
   }
 
   tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> LUP_Decomposition();
-
   vector<T> SolveSystemUsingLU();
-
   vector<T> GetSolution();
-
-  int best_in_the_row(int row);
-  int best_in_the_col(int col);
-  pair<int, int> best_in_the_sqr(int start_i, int start_j);
+  vector<T> SolveSystem(vector<vector<T>> A, vector<T> B);
 
   void Print() const;
 
@@ -43,12 +55,14 @@ class Solver {
 
   void SolveStage(int stage, bool lu = false);
 
-  void swap_rows(int row1, int row2);
+  int best_in_the_row(int row);
+  int best_in_the_col(int col);
+  pair<int, int> best_in_the_sqr(int start_i, int start_j);
 
+  void swap_rows(int row1, int row2);
   void swap_columns(int col1, int col2);
 
   void normalize_row(int row, bool work_with_ans = true);
-
   void substract_str(int row, int stage, bool work_with_ans = true);
 };
 
@@ -272,5 +286,11 @@ void Solver<T, Func>::normalize_row(int row, bool work_with_ans) {
     b[row] /= koef;
   }
 }
+template<typename T, class Func>
+vector<T> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<T> B) {
+
+
+}
+
 
 #endif //SYSTEM_SOLVER__SOLVER_H_

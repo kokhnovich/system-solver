@@ -1,24 +1,14 @@
 #include <bits/stdc++.h>
-#include "profile.h"
-#include "test_runner.h"
-#include "Fraction.h"
-
 using namespace std;
-
-enum class SolverMethod {
-  DO_NOT_TOUCH,
-  BEST_IN_ROW,
-  BEST_IN_COLUMN,
-  BEST_IN_MATRIX
-};
 
 template<typename T>
 vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
-  size_t n = A.size();
-  vector<vector<T>> R(n, vector<T>(n, T(0)));
-  for (size_t i = 0; i < n; i++) {
-    for (size_t j = 0; j < n; j++) {
-      for (size_t k = 0; k < n; k++) {
+  if (A.empty() || B.empty() || A[0].size() != B.size()) throw logic_error("wrong sizes");
+  size_t N = A.size(), M = A[0].size(), K = B[0].size();
+  vector<vector<T>> R(N, vector<T>(K, T(0)));
+  for (size_t i = 0; i < N; i++) {
+    for (size_t j = 0; j < K; j++) {
+      for (size_t k = 0; k < M; k++) {
         R[i][j] += A[i][k] * B[k][j];
       }
     }
@@ -26,41 +16,21 @@ vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
   return R;
 }
 
-/** matrix should be NxN
- *  template class Func can be, for example, std:greater<T> or std:less<T>
- *  Func must be linear!
- *
-**/
 
-// @TODO file separation
+// @TODO make solver a robot: matrixes are in params, not in constructor
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO add LU-decomposition
 // @TODO architecture + memory optimizations
-
-
-Fraction abs(const Fraction& val) {
-  return Fraction(abs(val.numerator), abs(val.denominator));
-}
-
 template<class T>
 struct greater_using_abs {
   bool operator()(const T& x, const T& y) const { return abs(x) > abs(y); }
 };
 
+#include "Fraction.h"
 #include "Solver.h"
-
-template<typename T>
-void PrintMatrix(const vector<vector<T>>& a, const string& message = "") {
-  cout << message << ":\n";
-  for (auto& i : a) {
-    for (auto& j : i) {
-      cout << j << " ";
-    }
-    cout << endl;
-  }
-  cout << "\n\n";
-}
+#include "Debug.h"
+#include "test_runner.h"
 
 template<typename T>
 vector<vector<T>> getHWMatrix(int n) {
@@ -114,6 +84,7 @@ void SolveMyHomeWorkAboutLUP() {
 
   cout << endl << (A == res ? "works nice (:" : "smth goes wrong ):") << endl;
 
+  /*
   auto ans = solver->SolveSystemUsingLU();
 
   cout << "ans\n";
@@ -121,13 +92,17 @@ void SolveMyHomeWorkAboutLUP() {
     cout << i << " ";
   }
   cout << endl;
-
+*/
 }
 
 #include "tests.cpp"
 
 int main() {
   // SolveMyHomework();
+  vector<int> a(2, 3), b(2, 2);
+
+  // cout << mult<int>({{1, 1}, {1, 1}, {1, 1}}, {{1, 1, 1}, {1, 1, 1}}) << endl;
+
   SolveMyHomeWorkAboutLUP();
   return 0;
 }
