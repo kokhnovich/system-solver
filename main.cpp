@@ -32,6 +32,7 @@ vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
  *
 **/
 
+// @TODO file separation
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO add LU-decomposition
@@ -49,13 +50,21 @@ struct greater_using_abs {
 
 template<typename T, class Func=std::greater<T>>
 class Solver {
+ private:
+  bool was_lu;
+  vector<vector<T>> a, L, P;
+  vector<T> b;
+  vector<int> ans_perm;
+  int size_;
+  SolverMethod method_;
+
  public:
   explicit Solver(vector<vector<T>> aa, vector<T> bb, const SolverMethod& method = SolverMethod::DO_NOT_TOUCH)
       : a(move(aa)),
         b(move(bb)),
+        was_lu(false),
         ans_perm(vector<int>(a.size(), 0)),
-        method_(method),
-        L(vector<vector<T>>(a.size(), vector<T>(a.size(), T(0)))),
+        method_(method), L(vector<vector<T>>(a.size(), vector<T>(a.size(), T(0)))),
         P(vector<vector<T>>(a.size(), vector<T>(a.size(), T(0)))) {
     if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix");
     size_ = a.size();
@@ -64,25 +73,67 @@ class Solver {
     }
   }
 
-  tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> LUP_Decomposition() {
+  /*
+   * works only with DO_NOT_TOUCH and BEST_IN_THE_ROW !!!
+   */
+  tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>>
+  LUP_Decomposition() {
     for (int i = 0; i < size_; ++i) {
       SolveStage(i, true);
-      // cout << "stage " << i << endl;
-      // Print();
+//       cout << "stage " << i << endl;
+//       Print();
     }
-
     Print();
     vector<vector<T>> ans(size_, vector<T>(size_, T(0)));
-
     for (int i = 0; i < size_; ++i) {
       P[i][ans_perm[i]] = 1;
+//      for (int j = 0; j < size_; ++j) {
+//        ans[j][ans_perm[i]] = a[j][i];
+//      }
+    }
+
+    was_lu = true;
+    return make_tuple(L, a, P);
+  };
+
+  vector<T> SolveSystemUsingLU() {
+    if (!was_lu) throw logic_error("Big dick");
+    /*
+     * A = LU
+     * Ax=b
+     * LUx=b
+     * [y=Ux]
+     * 1) Ly=b, L is lower-diagonal
+     * 2) Ux=y, L is upper-diagonal
+     * return x
+     */
+
+    vector<T> y(size_, T(0));
+
+    // a = mult(a, P);
+    for (int i = 0; i < size_; ++i) {
       for (int j = 0; j < size_; ++j) {
-        ans[j][ans_perm[i]] = a[j][i];
+        a[j][ans_perm[i]] = a[j][i];
       }
     }
 
-    return make_tuple(L, a, P);
-  };
+    for (int i = 0; i < size_; ++i) {
+      for (int j = 0; j < i; ++j) {
+        b[i] -= y[j] * L[i][j];
+      }
+      y[i] = b[i];
+    }
+
+    vector<T> x(size_, T(0));
+    for (int i = size_ - 1; i >= 0; --i) {
+      for (int j = i + 1; j < size_; ++j) {
+        y[i] -= a[i][j] * x[j];
+      }
+      x[i] = y[i] / a[i][i];
+    }
+
+    return x;
+  }
 
   vector<T> GetSolution() {
     /// time complexity is O(n^3)
@@ -246,14 +297,7 @@ class Solver {
       b[row] -= b[stage] * koef;
     }
   }
-
-  vector<vector<T>> a, L, P;
-  vector<T> b;
-  vector<int> ans_perm;
-  int size_;
-  SolverMethod method_;
-};
-
+};;
 template<typename T>
 void PrintMatrix(const vector<vector<T>>& a, const string& message = "") {
   cout << message << ":\n";
@@ -291,11 +335,17 @@ void SolveMyHomework(int n = 12) {
   solver->Print();
 }
 
-void SolveMyHomeWorkAboutLU() {
+void SolveMyHomeWorkAboutLUP() {
   auto A = getHWMatrix<Fraction>(12);
   vector<vector<Fraction>> L, U, P;
+  vector<Fraction> b(4);
+  for (size_t i = 0; i < b.size(); ++i) {
+    // b[i] = accumulate(a[i].begin(), a[i].end(), Fraction(0, 1));
+    b[i] = A[i][0] + Fraction(1) * A[i][1] + Fraction(1) * A[i][2] + Fraction(1) * A[i][3];
+  }
+
   PrintMatrix(A);
-  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(A, A[0], SolverMethod::BEST_IN_ROW);
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(A, b, SolverMethod::DO_NOT_TOUCH);
   tie(L, U, P) = solver->LUP_Decomposition();
 
   PrintMatrix(L, "L");
@@ -306,10 +356,19 @@ void SolveMyHomeWorkAboutLU() {
 
   auto res = mult(L, U);
   PrintMatrix(res, "LU");
+  PrintMatrix(mult(U, P), "UP");
   res = mult(res, P);
   PrintMatrix(res, "A = LUP");
 
   cout << endl << (A == res ? "works nice (:" : "smth goes wrong ):") << endl;
+
+  auto ans = solver->SolveSystemUsingLU();
+
+  cout << "ans\n";
+  for (const auto& i : ans) {
+    cout << i << " ";
+  }
+  cout << endl;
 
 }
 
@@ -322,6 +381,6 @@ int main() {
   // SolverFractionTests();
 
   // SolveMyHomework();
-  SolveMyHomeWorkAboutLU();
+  SolveMyHomeWorkAboutLUP();
   return 0;
 }
