@@ -16,12 +16,9 @@ vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
   return R;
 }
 
-
-// @TODO make solver a robot: matrixes are in params, not in constructor
+// @TODO add extended matrix solver method
 // @TODO norm tests
 // @TODO optimize using profiler
-// @TODO add LU-decomposition
-// @TODO architecture + memory optimizations
 template<class T>
 struct greater_using_abs {
   bool operator()(const T& x, const T& y) const { return abs(x) > abs(y); }
@@ -40,7 +37,17 @@ vector<vector<T>> getHWMatrix(int n) {
           {n / 3, -1, n, -n}};
 }
 
+template<typename T>
+vector<vector<T>> getIdentityMatrix(int n) {
+  vector<vector<T>> A(n, vector<T>(n, T(0)));
+  for (size_t i = 0; i < n; ++i) {
+    A[i][i] = T(1);
+  }
+  return A;
+}
+
 void SolveMyHomework(int n = 12) {
+  /*
   cout << "n = 12\nmatrix is\n";
   vector<vector<Fraction>> a = getHWMatrix<Fraction>(n);
   vector<Fraction> b(4);
@@ -48,16 +55,16 @@ void SolveMyHomework(int n = 12) {
     // b[i] = accumulate(a[i].begin(), a[i].end(), Fraction(0, 1));
     b[i] = a[i][0] + Fraction(1) * a[i][1] + Fraction(1) * a[i][2] + Fraction(1) * a[i][3];
   }
-  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(a, b, SolverMethod::BEST_IN_MATRIX);
-  solver->Print();
-  for (auto& i : solver->GetSolution()) {
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
+  for (auto& i : solver->SolveSystem(a, b, SolverMethod::BEST_IN_MATRIX)) {
     cout << i << " ";
   }
   cout << endl;
-  solver->Print();
+   */
 }
 
 void SolveMyHomeWorkAboutLUP() {
+  /*
   auto A = getHWMatrix<Fraction>(12);
   vector<vector<Fraction>> L, U, P;
   vector<Fraction> b(4);
@@ -83,7 +90,7 @@ void SolveMyHomeWorkAboutLUP() {
   PrintMatrix(res, "A = LUP");
 
   cout << endl << (A == res ? "works nice (:" : "smth goes wrong ):") << endl;
-
+*/
   /*
   auto ans = solver->SolveSystemUsingLU();
 
@@ -93,15 +100,28 @@ void SolveMyHomeWorkAboutLUP() {
   }
   cout << endl;
 */
-}
 
-#include "tests.cpp"
+}
 
 int main() {
   // SolveMyHomework();
   vector<int> a(2, 3), b(2, 2);
 
   // cout << mult<int>({{1, 1}, {1, 1}, {1, 1}}, {{1, 1, 1}, {1, 1, 1}}) << endl;
+
+  cout << getIdentityMatrix<Fraction>(4) << endl;
+
+  vector<vector<Fraction>> A = {{1, 2}, {3, 4}}, B{{1, 0}, {0, 1}};
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
+  auto ans = solver->SolveSystem(A, B, SolverMethod::DO_NOT_TOUCH);
+  cout << ans.size() << " " << ans[1].size() << endl;
+  cout << mult(A, ans) << endl;
+  for (const auto& i : ans) {
+    for (const auto& j : i) {
+      cout << j << ' ';
+    }
+    cout << endl;
+  }
 
   SolveMyHomeWorkAboutLUP();
   return 0;
