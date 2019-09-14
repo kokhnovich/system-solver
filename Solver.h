@@ -15,17 +15,17 @@ enum class SolverMethod {
 template<typename T>
 vector<T>& operator-=(vector<T>& one, const vector<T>& two) {
   if (one.size() != two.size()) throw logic_error("a -= b bad sizes");
-  for(size_t i = 0; i < one.size(); ++i) {
+  for (size_t i = 0; i < one.size(); ++i) {
     one[i] -= two[i];
   }
   return one;
 }
 
 template<typename T>
-vector<T> operator*(int koef, const vector<T>& one) {
+vector<T> operator*(T koef, const vector<T>& one) {
   vector<T> ans(one);
-  for(auto& i : ans) {
-    i *= koef;
+  for (auto& i : ans) {
+    i = i * koef;
   }
   return ans;
 }
@@ -43,82 +43,36 @@ vector<T> operator*(int koef, const vector<T>& one) {
 template<typename T, class Func=std::greater<T>>
 class Solver {
  private:
-  bool was_lu;
-  vector<vector<T>> a, L, P;
-  vector<T> b;
-  vector<int> ans_perm;
-  int size_;
-  SolverMethod method_;
 
  public:
-  explicit Solver(vector<vector<T>> aa, vector<T> bb, const SolverMethod& method = SolverMethod::DO_NOT_TOUCH)
-      : a(move(aa)), b(move(bb)), was_lu(false), ans_perm(vector<int>(a.size(), 0)),
-        method_(method), L(vector<vector<T>>(a.size(), vector<T>(a.size(), T(0)))),
-        P(vector<vector<T>>(a.size(), vector<T>(a.size(), T(0)))) {
-    if (a.empty() || a.size() != a[0].size() || a.size() != b.size()) throw logic_error("bad matrix");
-    size_ = a.size();
-    for (int i = 0; i < size_; ++i) {
-      ans_perm[i] = i;
-    }
-  }
+  explicit Solver() = default;
 
-  tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> LUP_Decomposition();
-  vector<T> SolveSystemUsingLU();
-  vector<T> GetSolution();
-  vector<T> SolveSystem(vector<vector<T>> A, vector<T> B);
+  // tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> LUP_Decomposition();
+  // vector<T> SolveSystemUsingLU();
+  vector<vector<T>> SolveSystem(vector<vector<T>> A, vector<vector<T>> B, const SolverMethod& method_);
 
-  void Print() const;
+  void Print(const vector<vector<T>>& A, const vector<int>& ans_order) const;
 
  private:
 
-  void SolveStage(int stage, bool lu = false);
-  void SolveStage(vector<vector<T>>& A, int stage);
+  void SolveStage(vector<vector<T>>& A, int stage, const SolverMethod& method_, vector<int>& ans_order);
 
-  int best_in_the_row(int row);
+  vector<vector<T>> makeExtended(const vector<vector<T>>& A, const vector<vector<T>> B);
+  vector<vector<T>> extractAnsMatrixFromExtended(const vector<vector<T>>& A);
+
   int best_in_the_row(const vector<vector<T>>& A, int row);
-  int best_in_the_col(int col);
   int best_in_the_col(const vector<vector<T>>& A, int col);
-  pair<int, int> best_in_the_sqr(int start_i, int start_j);
+  pair<int, int> best_in_the_sqr(const vector<vector<T>>& A, int start_i, int start_j);
 
-  void swap_rows(int row1, int row2);
   void swap_rows(vector<vector<T>>& A, int row1, int row2);
-  void swap_columns(int col1, int col2);
   void swap_columns(vector<vector<T>>& A, int col1, int col2);
 
-  void normalize_row(int row, bool work_with_ans = true);
   void normalize_row(vector<vector<T>>& A, int row);
-  void substract_str(int row, int stage, bool work_with_ans = true);
   void substract_str(vector<vector<T>>& A, int row, int stage);
+  void sub_row(vector<vector<T>>& A, int row1, int row2, T koef); // row1 -= row2 * koef
 };
 
-template<typename T, class Func>
-vector<T> Solver<T, Func>::GetSolution() {
-  /// time complexity is O(n^3)
-  for (int i = 0; i < size_; ++i) {
-    SolveStage(i);
-    cout << "stage " << i << endl;
-    Print();
-  }
-
-  //Print();
-  //cout << endl;
-
-  /// time complexity is O(n^2)
-  for (int i = size_ - 1; i >= 0; --i) {
-    T cost = T(0);
-    for (int j = i + 1; j < size_; ++j) {
-      cost += a[i][j] * b[j];
-      a[i][j] = T(0);
-    }
-    b[i] -= cost;
-  }
-  vector<T> ans(size_);
-  for (int i = 0; i < size_; ++i) {
-    ans[ans_perm[i]] = b[i];
-  }
-  return ans;
-}
-
+/*
 template<typename T, class Func>
 tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> Solver<T, Func>::LUP_Decomposition() {
   for (int i = 0; i < size_; ++i) {
@@ -129,96 +83,44 @@ tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> Solver<T, Func>::
   Print();
   vector<vector<T>> ans(size_, vector<T>(size_, T(0)));
   for (int i = 0; i < size_; ++i) {
-    P[i][ans_perm[i]] = 1;
+    P[i][ans_order[i]] = 1;
 //      for (int j = 0; j < size_; ++j) {
-//        ans[j][ans_perm[i]] = a[j][i];
+//        ans[j][ans_order[i]] = a[j][i];
 //      }
   }
 
   was_lu = true;
   return make_tuple(L, a, P);
 }
+*/
 
 template<typename T, class Func>
-void Solver<T, Func>::substract_str(int row, int stage, bool work_with_ans) {
-  T koef;
-  if (work_with_ans) {
-    koef = a[row][stage];
-  } else {
-    koef = a[row][stage] / a[stage][stage];
-    int diff = row - stage;
-    L[row][stage] = koef;
-  }
-  for (int col = stage; col < size_; ++col) {
-    a[row][col] -= a[stage][col] * koef;
-  }
-  if (work_with_ans) {
-    b[row] -= b[stage] * koef;
-  }
-}
-template<typename T, class Func>
-void Solver<T, Func>::SolveStage(int stage, bool lu) {
-  cout << "Solve stage " << stage << endl;
-  switch (method_) {
-    case SolverMethod::DO_NOT_TOUCH : {
-      if (lu) break;
-      for (int row = stage; row < size_; ++row) {
-        if (a[row][stage] != T(0)) {
-          swap_rows(stage, row);
-          break;
-        }
-      }
-      break;
-    }
-    case SolverMethod::BEST_IN_COLUMN : {
-      swap_rows(stage, best_in_the_col(stage));
-      break;
-    }
-    case SolverMethod::BEST_IN_ROW : {
-      swap_columns(stage, best_in_the_row(stage));
-      break;
-    }
-    case SolverMethod::BEST_IN_MATRIX : {
-      auto max_pos = best_in_the_sqr(stage, stage);
-      swap_rows(stage, max_pos.first);
-      swap_columns(stage, max_pos.second);
-      break;
-    }
-  }
-  if (a[stage][stage] == T(0)) return;
-
-  if (!lu) {
-    normalize_row(stage);
-    for (int row = stage + 1; row < size_; ++row) {
-      substract_str(row, stage);
-    }
-  } else {
-    L[stage][stage] = 1;
-    for (int row = stage + 1; row < size_; ++row) {
-      substract_str(row, stage, false);
-    }
+void Solver<T, Func>::substract_str(vector<vector<T>>& A, int row, int stage) {
+  T koef = A[row][stage];
+  for (int col = stage; col < A[0].size(); ++col) {
+    A[row][col] -= A[stage][col] * koef;
   }
 }
 
+/**
 template<typename T, class Func>
 vector<T> Solver<T, Func>::SolveSystemUsingLU() {
   if (!was_lu) throw logic_error("You should do LU before that");
-  /*
-   * A = LU
-   * Ax=b
-   * LUx=b
-   * [y=Ux]
-   * 1) Ly=b, L is lower-diagonal
-   * 2) Ux=y, L is upper-diagonal
-   * return x
-   */
-
+//
+//   * A = LU
+//   * Ax=b
+//   * LUx=b
+//   * [y=Ux]
+//   * 1) Ly=b, L is lower-diagonal
+//   * 2) Ux=y, L is upper-diagonal
+//   * return x
+//
   vector<T> y(size_, T(0));
 
   // a = mult(a, P);
   for (int i = 0; i < size_; ++i) {
     for (int j = 0; j < size_; ++j) {
-      a[j][ans_perm[i]] = a[j][i];
+      a[j][ans_order[i]] = a[j][i];
     }
   }
 
@@ -239,32 +141,34 @@ vector<T> Solver<T, Func>::SolveSystemUsingLU() {
 
   return x;
 }
+**/
+
 template<typename T, class Func>
-int Solver<T, Func>::best_in_the_row(int row) {
+int Solver<T, Func>::best_in_the_row(const vector<vector<T>>& A, int row) {
   int best_column = row;
-  for (int column = row + 1; column < size_; ++column) {
-    if (Func()(a[row][column], a[row][best_column])) {
+  for (int column = row + 1; column < A[0].size(); ++column) {
+    if (Func()(A[row][column], A[row][best_column])) {
       best_column = column;
     }
   }
   return best_column;
 }
 template<typename T, class Func>
-int Solver<T, Func>::best_in_the_col(int col) {
+int Solver<T, Func>::best_in_the_col(const vector<vector<T>>& A, int col) {
   int best_row = col;
-  for (int i = col + 1; i < size_; ++i) {
-    if (Func()(a[i][col], a[best_row][col])) {
+  for (int i = col + 1; i < A[0].size(); ++i) {
+    if (Func()(A[i][col], A[best_row][col])) {
       best_row = i;
     }
   }
   return best_row;
 }
 template<typename T, class Func>
-pair<int, int> Solver<T, Func>::best_in_the_sqr(int start_i, int start_j) {
+pair<int, int> Solver<T, Func>::best_in_the_sqr(const vector<vector<T>>& A, int start_i, int start_j) {
   int best_i = start_i, best_j = start_j;
-  for (int i = start_i; i < size_; ++i) {
-    for (int j = start_j; j < size_; ++j) {
-      if (Func()(a[i][j], a[best_i][best_j])) {
+  for (int i = start_i; i < A.size(); ++i) {
+    for (int j = start_j; j < A.size(); ++j) {
+      if (Func()(A[i][j], A[best_i][best_j])) {
         best_i = i, best_j = j;
       }
     }
@@ -272,52 +176,78 @@ pair<int, int> Solver<T, Func>::best_in_the_sqr(int start_i, int start_j) {
   return make_pair(best_i, best_j);
 }
 template<typename T, class Func>
-void Solver<T, Func>::Print() const {
-  for (int i = 0; i < size_; ++i) {
-    for (auto& j : a[i]) {
+void Solver<T, Func>::Print(const vector<vector<T>>& A, const vector<int>& ans_order) const {
+  for (int i = 0; i < A.size(); ++i) {
+    for (auto& j : A[i]) {
       cout << j << " ";
     }
-    cout << b[i] << endl;
+    cout << endl;
   }
   cout << "Порядок неизвестных: ";
-  for (const auto& i : ans_perm) {
+  for (const auto& i : ans_order) {
     cout << i + 1 << " ";
   }
   cout << endl;
 }
 template<typename T, class Func>
-void Solver<T, Func>::swap_rows(int row1, int row2) {
+void Solver<T, Func>::swap_rows(vector<vector<T>>& A, int row1, int row2) {
   cout << "Swapped rows " << row1 << " " << row2 << endl;
   if (row1 == row2) return;
-  swap(a[row1], a[row2]);
-  swap(b[row1], b[row2]);
+  swap(A[row1], A[row2]);
 }
 template<typename T, class Func>
-void Solver<T, Func>::swap_columns(int col1, int col2) {
+void Solver<T, Func>::swap_columns(vector<vector<T>>& A, int col1, int col2) {
   cout << "Swapped columns " << col1 << " " << col2 << endl;
   if (col1 == col2) return;
-  swap(ans_perm[col1], ans_perm[col2]);
-  for (int row = 0; row < size_; ++row) {
-    swap(a[row][col1], a[row][col2]);
+  for (int row = 0; row < A.size(); ++row) {
+    swap(A[row][col1], A[row][col2]);
   }
 }
 template<typename T, class Func>
-void Solver<T, Func>::normalize_row(int row, bool work_with_ans) {
-  T koef = a[row][row];
-  for (int col = row; col < size_; ++col) {
-    a[row][col] /= koef;
-  }
-  if (work_with_ans) {
-    b[row] /= koef;
+void Solver<T, Func>::normalize_row(vector<vector<T>>& A, int row) {
+  T koef = A[row][row];
+  for (int col = row; col < A[0].size(); ++col) {
+    A[row][col] /= koef;
   }
 }
 template<typename T, class Func>
-vector<T> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<T> B) {
+vector<vector<T>> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<vector<T>> B, const SolverMethod& method_) {
 
+  vector<int> ans_order(A.size());
+  for (int i = 0; i < A.size(); ++i) {
+    ans_order[i] = i;
+  }
+
+  A = makeExtended(A, B);
+
+  Print(A, ans_order);
+
+  for (int stage = 0; stage < A.size(); ++stage) {
+    SolveStage(A, stage, method_, ans_order);
+    Print(A, ans_order);
+  }
+
+  Print(A, ans_order);
+
+  for (int i = A.size() - 1; i >= 0; --i) {
+    for (int j = i + 1; j < A.size(); ++j) {
+      // B[i] -= A[i][j] * B[j];
+      sub_row(A, i, j, A[i][j]);
+      A[i][j] = T(0);
+    }
+  }
+
+  Print(A, ans_order);
+
+//  vector<vector<T>> ans(A.size());
+//  for (size_t i = 0; i < A.size(); ++i) {
+//    ans[ans_order[i]] = B[i];
+//  }
+  return extractAnsMatrixFromExtended(A);
 }
 
 template<typename T, class Func>
-void Solver<T, Func>::SolveStage(vector<vector<T>>& A, int stage) {
+void Solver<T, Func>::SolveStage(vector<vector<T>>& A, int stage, const SolverMethod& method_, vector<int>& ans_order) {
   cout << "Solve stage(for A) " << stage << endl;
   switch (method_) {
     case SolverMethod::DO_NOT_TOUCH : {
@@ -352,5 +282,28 @@ void Solver<T, Func>::SolveStage(vector<vector<T>>& A, int stage) {
   }
 
 }
-
+template<typename T, class Func>
+vector<vector<T>> Solver<T, Func>::makeExtended(const vector<vector<T>>& A, const vector<vector<T>> B) {
+  vector<vector<T>> AA(A);
+  for (int i = 0; i < AA.size(); ++i) {
+    std::copy (begin(B[i]), end(B[i]), std::back_inserter(AA[i]));
+  }
+  return AA;
+}
+template<typename T, class Func>
+void Solver<T, Func>::sub_row(vector<vector<T>>& A, int row1, int row2, T koef) {
+  for(int j = 0; j < A[0].size(); ++j) {
+    A[row1][j] -= A[row2][j] * koef;
+  }
+}
+template<typename T, class Func>
+vector<vector<T>> Solver<T, Func>::extractAnsMatrixFromExtended(const vector<vector<T>>& A) {
+  vector<vector<T>> B(A[0].size() - A.size(), vector<T>(A[0].size() - A.size()));
+  for(int i = 0; i < A.size(); ++i) {
+    for(int j = A.size(); j < A[0].size(); ++j) {
+      B[i][j-A.size()] = A[i][j];
+    }
+  }
+  return B;
+}
 #endif //SYSTEM_SOLVER__SOLVER_H_
