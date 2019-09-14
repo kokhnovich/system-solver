@@ -11,3 +11,6 @@ Add LU decomposition method
 A = LU
 
 It's better to debug every step of computations.
+
+
+###### update 09.13.2019: any help will be very welcomed

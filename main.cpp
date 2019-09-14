@@ -64,7 +64,7 @@ void SolveMyHomework(int n = 12) {
 }
 
 void SolveMyHomeWorkAboutLUP() {
-  /*
+
   auto A = getHWMatrix<Fraction>(12);
   vector<vector<Fraction>> L, U, P;
   vector<Fraction> b(4);
@@ -74,8 +74,8 @@ void SolveMyHomeWorkAboutLUP() {
   }
 
   PrintMatrix(A);
-  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>(A, b, SolverMethod::DO_NOT_TOUCH);
-  tie(L, U, P) = solver->LUP_Decomposition();
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
+  tie(L, U, P) = solver->LUP_Decomposition(A, SolverMethod::BEST_IN_ROW);
 
   PrintMatrix(L, "L");
 
@@ -90,7 +90,7 @@ void SolveMyHomeWorkAboutLUP() {
   PrintMatrix(res, "A = LUP");
 
   cout << endl << (A == res ? "works nice (:" : "smth goes wrong ):") << endl;
-*/
+
   /*
   auto ans = solver->SolveSystemUsingLU();
 
@@ -104,24 +104,24 @@ void SolveMyHomeWorkAboutLUP() {
 }
 
 int main() {
-  // SolveMyHomework();
-  vector<int> a(2, 3), b(2, 2);
-
-  // cout << mult<int>({{1, 1}, {1, 1}, {1, 1}}, {{1, 1, 1}, {1, 1, 1}}) << endl;
-
-  cout << getIdentityMatrix<Fraction>(4) << endl;
-
-  vector<vector<Fraction>> A = {{1, 2}, {3, 4}}, B{{1, 0}, {0, 1}};
-  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
-  auto ans = solver->SolveSystem(A, B, SolverMethod::DO_NOT_TOUCH);
-  cout << ans.size() << " " << ans[1].size() << endl;
-  cout << mult(A, ans) << endl;
-  for (const auto& i : ans) {
-    for (const auto& j : i) {
-      cout << j << ' ';
-    }
-    cout << endl;
-  }
+//  // SolveMyHomework();
+//  vector<int> a(2, 3), b(2, 2);
+//
+//  // cout << mult<int>({{1, 1}, {1, 1}, {1, 1}}, {{1, 1, 1}, {1, 1, 1}}) << endl;
+//
+//  cout << getIdentityMatrix<Fraction>(4) << endl;
+//
+//  vector<vector<Fraction>> A = {{1, 2}, {3, 4}}, B{{1, 0}, {0, 1}};
+//  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
+//  auto ans = solver->SolveSystem(A, B, SolverMethod::DO_NOT_TOUCH);
+//  cout << ans.size() << " " << ans[1].size() << endl;
+//  cout << mult(A, ans) << endl;
+//  for (const auto& i : ans) {
+//    for (const auto& j : i) {
+//      cout << j << ' ';
+//    }
+//    cout << endl;
+//  }
 
   SolveMyHomeWorkAboutLUP();
   return 0;
