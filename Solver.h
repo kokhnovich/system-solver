@@ -80,7 +80,7 @@ tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> Solver<T, Func>::
   vector<vector<T>> L(A.size(), vector<T>(A.size(), 0)), U(A), P(A.size(), vector<T>(A.size(), 0));
   for (int i = 0; i < A.size(); ++i) {
     ans_order[i] = i;
-    P[i][i] = 1;
+    // P[i][i] = 1;
   }
   Print(U, ans_order);
   for (int stage = 0; stage < U.size(); ++stage) {
@@ -106,16 +106,10 @@ tuple<vector<vector<T>>, vector<vector<T>>, vector<vector<T>>> Solver<T, Func>::
     Print(U, ans_order);
   }
 
-//  for (int i = 0; i < A.size(); ++i) {
-//
-//  }
-//  vector<vector<T>> ans(size_, vector<T>(size_, T(0)));
-//  for (int i = 0; i < size_; ++i) {
-//    P[i][ans_order[i]] = 1;
-//      for (int j = 0; j < size_; ++j) {
-//        ans[j][ans_order[i]] = a[j][i];
-//      }
-//  }
+
+  for (int i = 0; i < A.size(); ++i) {
+    P[i][ans_order[i]] = 1;
+  }
   return make_tuple(L, U, P);
 }
 
