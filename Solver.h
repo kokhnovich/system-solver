@@ -12,6 +12,24 @@ enum class SolverMethod {
   BEST_IN_MATRIX
 };
 
+template<typename T>
+vector<T>& operator-=(vector<T>& one, const vector<T>& two) {
+  if (one.size() != two.size()) throw logic_error("a -= b bad sizes");
+  for(size_t i = 0; i < one.size(); ++i) {
+    one[i] -= two[i];
+  }
+  return one;
+}
+
+template<typename T>
+vector<T> operator*(int koef, const vector<T>& one) {
+  vector<T> ans(one);
+  for(auto& i : ans) {
+    i *= koef;
+  }
+  return ans;
+}
+
 /** matrix should be NxN
  *  template class Func can be, for example, std:greater<T> or std:less<T>
  *  Func must be linear!
@@ -54,16 +72,23 @@ class Solver {
  private:
 
   void SolveStage(int stage, bool lu = false);
+  void SolveStage(vector<vector<T>>& A, int stage);
 
   int best_in_the_row(int row);
+  int best_in_the_row(const vector<vector<T>>& A, int row);
   int best_in_the_col(int col);
+  int best_in_the_col(const vector<vector<T>>& A, int col);
   pair<int, int> best_in_the_sqr(int start_i, int start_j);
 
   void swap_rows(int row1, int row2);
+  void swap_rows(vector<vector<T>>& A, int row1, int row2);
   void swap_columns(int col1, int col2);
+  void swap_columns(vector<vector<T>>& A, int col1, int col2);
 
   void normalize_row(int row, bool work_with_ans = true);
+  void normalize_row(vector<vector<T>>& A, int row);
   void substract_str(int row, int stage, bool work_with_ans = true);
+  void substract_str(vector<vector<T>>& A, int row, int stage);
 };
 
 template<typename T, class Func>
@@ -289,8 +314,43 @@ void Solver<T, Func>::normalize_row(int row, bool work_with_ans) {
 template<typename T, class Func>
 vector<T> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<T> B) {
 
-
 }
 
+template<typename T, class Func>
+void Solver<T, Func>::SolveStage(vector<vector<T>>& A, int stage) {
+  cout << "Solve stage(for A) " << stage << endl;
+  switch (method_) {
+    case SolverMethod::DO_NOT_TOUCH : {
+      for (int row = stage; row < A.size(); ++row) {
+        if (A[row][stage] != T(0)) {
+          swap_rows(A, stage, row);
+          break;
+        }
+      }
+      break;
+    }
+    case SolverMethod::BEST_IN_COLUMN : {
+      swap_rows(A, stage, best_in_the_col(A, stage));
+      break;
+    }
+    case SolverMethod::BEST_IN_ROW : {
+      swap_columns(A, stage, best_in_the_row(A, stage));
+      break;
+    }
+    case SolverMethod::BEST_IN_MATRIX : {
+      auto max_pos = best_in_the_sqr(A, stage, stage);
+      swap_rows(A, stage, max_pos.first);
+      swap_columns(A, stage, max_pos.second);
+      break;
+    }
+  }
+  if (A[stage][stage] == T(0)) return;
+
+  normalize_row(A, stage);
+  for (int row = stage + 1; row < A.size(); ++row) {
+    substract_str(A, row, stage);
+  }
+
+}
 
 #endif //SYSTEM_SOLVER__SOLVER_H_
