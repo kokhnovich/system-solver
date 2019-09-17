@@ -19,9 +19,9 @@ vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
   return R;
 }
 
-// @TODO add extended matrix solver method
 // @TODO norm tests
 // @TODO optimize using profiler
+// @TODO class LatexWriter
 template<class T>
 struct greater_using_abs {
   bool operator()(const T& x, const T& y) const { return abs(x) > abs(y); }
@@ -127,9 +127,16 @@ void SolveMyHomeWorkAboutLUP() {
 }
 */
 
+/*
+ * L2 D2 L1 (D2 D2) D1 A P1 P2 P3
+ * D2 L1 ----> L1 D2
+ *
+ */
 void SolveMyZALUPHomeWorkAboutDLUP() {
 
-  Matrix<Fraction> A = {{1, 3, 2}, {4, 5, 4}, {3, 5, 3}}, L, D, U, P;
+  Matrix<Fraction> A = {{1, 3, 2},
+                        {3, 5, 7},
+                        {4, 5, 8}}, L, D, U, P;
 
   auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
 
@@ -143,8 +150,9 @@ void SolveMyZALUPHomeWorkAboutDLUP() {
   PrintMatrix(U, "U");
   PrintMatrix(P, "P");
 
-  PrintMatrix(mult(mult(L, D), mult(U, P)), "LDUP");
-  PrintMatrix(mult(D, mult(U, P)), "DUP");
+  auto dlup = mult(mult(D, L), mult(U, P));
+  PrintMatrix(dlup, "LDUP");
+  cout << (dlup == A ? "Wonderful!" : "ZLUP-A") << endl;
   PrintMatrix(mult(L, U), "LU");
   PrintMatrix(mult(mult(D, A), P), "DAP");
 }

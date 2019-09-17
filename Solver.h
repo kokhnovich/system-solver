@@ -62,6 +62,7 @@ class Solver {
   Matrix<T> GetReversed(Matrix<T> A);
 
   void Print(const vector<vector<T>>& A, const vector<int>& ans_order) const;
+  void Print(const vector<vector<T>>& A) const;
 
   /// L D U P, such as A = D^{-1} L U P^{-1}
   tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Step(Matrix<T>& A, int stage);
@@ -247,6 +248,16 @@ void Solver<T, Func>::Print(const vector<vector<T>>& A, const vector<int>& ans_o
   cout << endl;
 }
 template<typename T, class Func>
+void Solver<T, Func>::Print(const vector<vector<T>>& A) const {
+  for (int i = 0; i < A.size(); ++i) {
+    for (auto& j : A[i]) {
+      cout << j << " ";
+    }
+    cout << endl;
+  }
+  cout << endl;
+}
+template<typename T, class Func>
 void Solver<T, Func>::swap_rows(vector<vector<T>>& A, int row1, int row2) {
   // cout << "Swapped rows " << row1 << " " << row2 << endl;
   if (row1 == row2) return;
@@ -303,7 +314,7 @@ vector<vector<T>> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<vecto
     }
   }
 
-  Print(A, ans_order);
+  // Print(A, ans_order);
 
 //  vector<vector<T>> ans(A.size());
 //  for (size_t i = 0; i < A.size(); ++i) {
@@ -314,7 +325,7 @@ vector<vector<T>> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<vecto
 
 template<typename T, class Func>
 void Solver<T, Func>::SolveStage(vector<vector<T>>& A, int stage, const SolverMethod& method_, vector<int>& ans_order) {
-  cout << "Solve stage(for A) " << stage << endl;
+  // cout << "Solve stage(for A) " << stage << endl;
   switch (method_) {
     case SolverMethod::DO_NOT_TOUCH : {
       for (int row = stage; row < A.size(); ++row) {
@@ -406,6 +417,7 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
   vector<Matrix<T>> Ps, Ds;
   Matrix<T> L(n, vector<T>(n, T(0))), U(A), I(getIdentityMatrix<T>(n));
 
+  bool is_first = true;
   for (int stage = 0; stage < n; ++stage) {
 
     auto best_pos = best_in_the_sqr(U, stage, stage);
@@ -420,17 +432,27 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
     }
 
     Matrix<T> P(I), D(I);
-    swap(P[stage], P[best_pos.first]);
-    swap(D[stage], D[best_pos.second]);
+    swap(P[stage], P[best_pos.second]);
+    swap(D[stage], D[best_pos.first]);
     Ps.push_back(P);
     Ds.push_back(D);
+
+//    for(int i = Ds.size() - 1; i >= 0; --i) {
+//      L = mult(Ds[i], L);
+//    }
+
+    if (is_first) {
+      is_first = false;
+    } else {
+      L = mult(D, L);
+    }
 
     for (int row = stage; row < n; ++row) {
       L[row][stage] = U[row][stage];
     }
 
-    assert(L[stage][stage] != T(0));
-    T k = L[stage][stage];
+    assert(U[stage][stage] != T(0));
+    T k = U[stage][stage];
     for (int col = stage; col < n; ++col) {
       U[stage][col] /= k;
     }
@@ -439,21 +461,25 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
       sub_row(U, row, stage, U[row][stage]);
     }
 
+    cout << "After stage " << stage << endl;
+    PrintMatrix(U, "U");
+    PrintMatrix(L, "L");
   }
 
-  // if (!Ps.empty() && !Ds.empty()) {
-  Matrix<T> P = Ps.back();
-  for (int i = Ps.size() - 2; i >= 0; --i) {
+  Matrix<T> P = I;
+  for (int i = Ps.size() - 1; i >= 0; --i) {
     P = mult(P, Ps[i]);
   }
-  Matrix<T> D = Ds.back();
-  for (int i = Ds.size() - 2; i >= 0; --i) {
+  Matrix<T> D = I;
+
+  for (int i = Ds.size() - 1; i >= 0; --i) {
     D = mult(D, Ds[i]);
   }
-  assert(D == GetReversed(D)); // can't trust it
-  assert(P == GetReversed(P)); // can't trust it
-  //D = GetReversed(D);
-  //P = GetReversed(P);
+  // assert(D == GetReversed(D)); // can't trust it
+  // assert(P == GetReversed(P)); // can't trust it
+  D = GetReversed(D);
+  P = GetReversed(P);
+
   return tie(D, L, U, P);
   // }
 }
