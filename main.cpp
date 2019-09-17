@@ -2,6 +2,9 @@
 using namespace std;
 
 template<typename T>
+using Matrix = vector<vector<T>>;
+
+template<typename T>
 vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
   if (A.empty() || B.empty() || A[0].size() != B.size()) throw logic_error("wrong sizes");
   size_t N = A.size(), M = A[0].size(), K = B[0].size();
@@ -24,11 +27,6 @@ struct greater_using_abs {
   bool operator()(const T& x, const T& y) const { return abs(x) > abs(y); }
 };
 
-#include "Fraction.h"
-#include "Solver.h"
-#include "Debug.h"
-#include "test_runner.h"
-
 template<typename T>
 vector<vector<T>> getHWMatrix(int n) {
   return {{n + 1, n / 2, -n / 2, 1},
@@ -38,13 +36,18 @@ vector<vector<T>> getHWMatrix(int n) {
 }
 
 template<typename T>
-vector<vector<T>> getIdentityMatrix(int n) {
+Matrix<T> getIdentityMatrix(int n) {
   vector<vector<T>> A(n, vector<T>(n, T(0)));
   for (size_t i = 0; i < n; ++i) {
     A[i][i] = T(1);
   }
   return A;
 }
+
+#include "Fraction.h"
+#include "Solver.h"
+#include "Debug.h"
+#include "test_runner.h"
 
 void SolveMyHomework(int n = 12) {
   /*
@@ -63,6 +66,19 @@ void SolveMyHomework(int n = 12) {
    */
 }
 
+template<typename T>
+T cubeNorm(const vector<vector<T>>& A) {
+  T best = T(0);
+  for (int j = 0; j < A[0].size(); ++j) {
+    T now = T(0);
+    for (int i = 0; i < A.size(); ++i) {
+      now += abs(A[i][j]);
+    }
+    best = max(best, now);
+  }
+  return best;
+}
+/*
 void SolveMyHomeWorkAboutLUP() {
 
   auto A = getHWMatrix<Fraction>(12);
@@ -88,19 +104,49 @@ void SolveMyHomeWorkAboutLUP() {
   PrintMatrix(mult(U, P), "UP");
   res = mult(res, P);
   PrintMatrix(res, "A = LUP");
+  PrintMatrix(mult(L, mult(U, P)), "A = L(UP)");
 
   cout << endl << (A == res ? "works nice (:" : "smth goes wrong ):") << endl;
 
-  /*
-  auto ans = solver->SolveSystemUsingLU();
+  auto B = getIdentityMatrix<Fraction>(4);
+  auto ans = solver->SolveSystemUsingLU(A, B, SolverMethod::BEST_IN_ROW);
 
-  cout << "ans\n";
-  for (const auto& i : ans) {
-    cout << i << " ";
-  }
-  cout << endl;
+  PrintMatrix(ans, "X");
+  PrintMatrix(mult(A, ans), "AX");
+
+  cout << "Cube norm " << cubeNorm(ans) * Fraction(41, 1) << endl;
+
+  cout << endl << (B == mult(A, ans) ? "good job bro" : "stupid wood") << endl;
+
+  ans = solver->SolveSystem(A, B, SolverMethod::BEST_IN_MATRIX);
+
+  PrintMatrix(ans, "X 2.0");
+  PrintMatrix(mult(A, ans), "AX 2.0");
+
+  cout << endl << (B == mult(A, ans) ? "good job bro" : "stupid wood") << endl;
+}
 */
 
+void SolveMyZALUPHomeWorkAboutDLUP() {
+
+  Matrix<Fraction> A = {{1, 3, 2}, {4, 5, 4}, {3, 5, 3}}, L, D, U, P;
+
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
+
+  //PrintMatrix(solver->GetReversed(A), "A^{-1}");
+
+  PrintMatrix(A, "A before");
+  tie(D, L, U, P) = solver->DLUP_Decomposition(A);
+  PrintMatrix(A, "A after");
+  PrintMatrix(D, "D");
+  PrintMatrix(L, "L");
+  PrintMatrix(U, "U");
+  PrintMatrix(P, "P");
+
+  PrintMatrix(mult(mult(L, D), mult(U, P)), "LDUP");
+  PrintMatrix(mult(D, mult(U, P)), "DUP");
+  PrintMatrix(mult(L, U), "LU");
+  PrintMatrix(mult(mult(D, A), P), "DAP");
 }
 
 int main() {
@@ -123,6 +169,6 @@ int main() {
 //    cout << endl;
 //  }
 
-  SolveMyHomeWorkAboutLUP();
+  SolveMyZALUPHomeWorkAboutDLUP();
   return 0;
 }
