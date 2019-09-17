@@ -134,7 +134,10 @@ void SolveMyHomeWorkAboutLUP() {
  */
 void SolveMyZALUPHomeWorkAboutDLUP() {
 
-  Matrix<Fraction> A = {{1, 3, 2},
+//  Matrix<Fraction> A = {{1, 3, 2},
+//                        {3, 5, 7},
+//                        {4, 5, 8}}, L, D, U, P;
+Matrix<Fraction> A = {{1, 3, 2},
                         {3, 5, 7},
                         {4, 5, 8}}, L, D, U, P;
 
@@ -152,7 +155,7 @@ void SolveMyZALUPHomeWorkAboutDLUP() {
 
   auto dlup = mult(mult(D, L), mult(U, P));
   PrintMatrix(dlup, "LDUP");
-  cout << (dlup == A ? "Wonderful!" : "ZLUP-A") << endl;
+  cout << (dlup == A ? "Wonderful!" : "ZLUP") << endl;
   PrintMatrix(mult(L, U), "LU");
   PrintMatrix(mult(mult(D, A), P), "DAP");
 }

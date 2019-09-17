@@ -60,6 +60,7 @@ class Solver {
                                        const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
   vector<vector<T>> SolveSystem(vector<vector<T>> A, vector<vector<T>> B, const SolverMethod& method_);
   Matrix<T> GetReversed(Matrix<T> A);
+  Matrix<T> GetReversedAndDebugUsingDLUP(Matrix<T> A);
 
   void Print(const vector<vector<T>>& A, const vector<int>& ans_order) const;
   void Print(const vector<vector<T>>& A) const;
@@ -437,10 +438,6 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
     Ps.push_back(P);
     Ds.push_back(D);
 
-//    for(int i = Ds.size() - 1; i >= 0; --i) {
-//      L = mult(Ds[i], L);
-//    }
-
     if (is_first) {
       is_first = false;
     } else {
@@ -462,21 +459,22 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
     }
 
     cout << "After stage " << stage << endl;
-    PrintMatrix(U, "U");
-    PrintMatrix(L, "L");
+    PrintMatrix(U, "U" + to_string(stage));
+    PrintMatrix(L, "L" + to_string(stage));
+    PrintMatrix(P, "P" + to_string(stage));
+    PrintMatrix(D, "D" + to_string(stage));
   }
 
   Matrix<T> P = I;
   for (int i = Ps.size() - 1; i >= 0; --i) {
     P = mult(P, Ps[i]);
   }
-  Matrix<T> D = I;
 
+  Matrix<T> D = I;
   for (int i = Ds.size() - 1; i >= 0; --i) {
     D = mult(D, Ds[i]);
   }
-  // assert(D == GetReversed(D)); // can't trust it
-  // assert(P == GetReversed(P)); // can't trust it
+
   D = GetReversed(D);
   P = GetReversed(P);
 
@@ -486,6 +484,13 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
 template<typename T, class Func>
 Matrix<T> Solver<T, Func>::GetReversed(vector<vector<T>> A) {
   return SolveSystem(A, getIdentityMatrix<T>(A.size()), SolverMethod::DO_NOT_TOUCH);
+}
+template<typename T, class Func>
+Matrix<T> Solver<T, Func>::GetReversedAndDebugUsingDLUP(Matrix<T> A) {
+  Matrix<T> L, D, U, P;
+  tie(D, L, U, P) = DLUP_Decomposition(A);
+  Matrix<T> Y = SolveSystem(L,mult(GetReversed(D),GetReversed(P)));
+  return SolveSystem(U, Y);
 }
 
 #endif //SYSTEM_SOLVER__SOLVER_H_
