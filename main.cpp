@@ -5,10 +5,10 @@ template<typename T>
 using Matrix = vector<vector<T>>;
 
 template<typename T>
-vector<vector<T>> mult(vector<vector<T>> A, vector<vector<T>> B) {
+Matrix<T> mult(Matrix<T> A, Matrix<T> B) {
   if (A.empty() || B.empty() || A[0].size() != B.size()) throw logic_error("wrong sizes");
   size_t N = A.size(), M = A[0].size(), K = B[0].size();
-  vector<vector<T>> R(N, vector<T>(K, T(0)));
+  Matrix<T> R(N, vector<T>(K, T(0)));
   for (size_t i = 0; i < N; i++) {
     for (size_t j = 0; j < K; j++) {
       for (size_t k = 0; k < M; k++) {
@@ -28,7 +28,7 @@ struct greater_using_abs {
 };
 
 template<typename T>
-vector<vector<T>> getHWMatrix(int n) {
+Matrix<T> getHWMatrix(int n) {
   return {{n + 1, n / 2, -n / 2, 1},
           {-n - 1, -(n + 1) / 2, (n + 1) / 2, -(n + 2) / 3},
           {-n + 1, (n + 1) / 2, -(n + 2) / 3, n - 1},
@@ -37,7 +37,7 @@ vector<vector<T>> getHWMatrix(int n) {
 
 template<typename T>
 Matrix<T> getIdentityMatrix(int n) {
-  vector<vector<T>> A(n, vector<T>(n, T(0)));
+  Matrix<T> A(n, vector<T>(n, T(0)));
   for (size_t i = 0; i < n; ++i) {
     A[i][i] = T(1);
   }
@@ -45,9 +45,9 @@ Matrix<T> getIdentityMatrix(int n) {
 }
 
 #include "Fraction.h"
+// #include "test_runner.h"
 #include "Solver.h"
 #include "Debug.h"
-#include "test_runner.h"
 
 void SolveMyHomework(int n = 12) {
   /*
@@ -67,7 +67,7 @@ void SolveMyHomework(int n = 12) {
 }
 
 template<typename T>
-T cubeNorm(const vector<vector<T>>& A) {
+T cubeNorm(const Matrix<T>& A) {
   T best = T(0);
   for (int j = 0; j < A[0].size(); ++j) {
     T now = T(0);
@@ -137,9 +137,9 @@ void SolveMyZALUPHomeWorkAboutDLUP() {
 //  Matrix<Fraction> A = {{1, 3, 2},
 //                        {3, 5, 7},
 //                        {4, 5, 8}}, L, D, U, P;
-Matrix<Fraction> A = {{1, 3, 2},
-                        {3, 5, 7},
-                        {4, 5, 8}}, L, D, U, P;
+  Matrix<Fraction> AA = {{1, 3, 2},
+                         {3, 5, 7},
+                         {4, 5, 8}}, L, D, U, P, A(AA);
 
   auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
 
@@ -153,11 +153,23 @@ Matrix<Fraction> A = {{1, 3, 2},
   PrintMatrix(U, "U");
   PrintMatrix(P, "P");
 
-  auto dlup = mult(mult(D, L), mult(U, P));
-  PrintMatrix(dlup, "LDUP");
+  auto dlup = mult(solver->GetReversed(D), mult(L, mult(U, solver->GetReversed(P))));
+  PrintMatrix(dlup, "D^{-1}LUP^{-1}");
+
+  dlup = mult(mult(solver->GetReversed(D), L), mult(U, solver->GetReversed(P)));
+  PrintMatrix(dlup, "(D^{-1}L) (UP^{-1})");
+
   cout << (dlup == A ? "Wonderful!" : "ZLUP") << endl;
   PrintMatrix(mult(L, U), "LU");
-  PrintMatrix(mult(mult(D, A), P), "DAP");
+  PrintMatrix(mult(mult((D), AA), (P)), "DAP");
+
+  // LUX = DEP
+
+  solver->SolveSystem(L, mult(D, P));
+
+//  auto AAA = solver->GetReversedAndDebugUsingDLUP(AA);
+//  PrintMatrix(AAA, "A^{-1}");
+//  PrintMatrix(mult(AA, AAA), "A * A^{-1}");
 }
 
 int main() {

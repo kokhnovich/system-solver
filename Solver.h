@@ -53,47 +53,49 @@ template<typename T, class Func=std::greater<T>>
 class Solver {
  public:
   explicit Solver() = default;
-  tuple<Matrix<T>, Matrix<T>, Matrix<T>> LUP_Decomposition(const vector<vector<T>>& A,
+  tuple<Matrix<T>, Matrix<T>, Matrix<T>> LUP_Decomposition(const Matrix<T>& A,
                                                            const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
-  vector<vector<T>> SolveSystemUsingLU(vector<vector<T>> A,
-                                       vector<vector<T>> B,
-                                       const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
-  vector<vector<T>> SolveSystem(vector<vector<T>> A, vector<vector<T>> B, const SolverMethod& method_);
+  Matrix<T> SolveSystemUsingLU(Matrix<T> A,
+                               Matrix<T> B,
+                               const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
+  Matrix<T> SolveSystem(Matrix<T> A,
+                        Matrix<T> B,
+                        const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
   Matrix<T> GetReversed(Matrix<T> A);
   Matrix<T> GetReversedAndDebugUsingDLUP(Matrix<T> A);
 
-  void Print(const vector<vector<T>>& A, const vector<int>& ans_order) const;
-  void Print(const vector<vector<T>>& A) const;
+  void Print(const Matrix<T>& A, const vector<int>& ans_order) const;
+  void Print(const Matrix<T>& A) const;
 
   /// L D U P, such as A = D^{-1} L U P^{-1}
   tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Step(Matrix<T>& A, int stage);
-  tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Decomposition(Matrix<T>& A);
+  tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Decomposition(Matrix<T> A);
 
  private:
 
-  void SolveStage(vector<vector<T>>& A, int stage, const SolverMethod& method_, vector<int>& ans_order);
+  void SolveStage(Matrix<T>& A, int stage, const SolverMethod& method_, vector<int>& ans_order);
 
-  vector<vector<T>> makeExtended(const vector<vector<T>>& A, const vector<vector<T>>& B);
-  vector<vector<T>> extractAnsMatrixFromExtended(const vector<vector<T>>& A);
+  Matrix<T> makeExtended(const Matrix<T>& A, const Matrix<T>& B);
+  Matrix<T> extractAnsMatrixFromExtended(const Matrix<T>& A);
 
-  int best_in_the_row(const vector<vector<T>>& A, int row);
-  int best_in_the_col(const vector<vector<T>>& A, int col);
-  pair<int, int> best_in_the_sqr(const vector<vector<T>>& A, int start_i, int start_j);
+  int best_in_the_row(const Matrix<T>& A, int row);
+  int best_in_the_col(const Matrix<T>& A, int col);
+  pair<int, int> best_in_the_sqr(const Matrix<T>& A, int start_i, int start_j);
 
-  void swap_rows(vector<vector<T>>& A, int row1, int row2);
-  void swap_columns(vector<vector<T>>& A, int col1, int col2, vector<int>& ans_order);
-  void swap_columns(vector<vector<T>>& A, int col1, int col2);
+  void swap_rows(Matrix<T>& A, int row1, int row2);
+  void swap_columns(Matrix<T>& A, int col1, int col2, vector<int>& ans_order);
+  void swap_columns(Matrix<T>& A, int col1, int col2);
 
-  void normalize_row(vector<vector<T>>& A, int row);
-  void substract_str(vector<vector<T>>& A, int row, int stage);
-  void sub_row(vector<vector<T>>& A, int row1, int row2, T koef); // row1 -= row2 * koef
+  void normalize_row(Matrix<T>& A, int row);
+  void substract_str(Matrix<T>& A, int row, int stage);
+  void sub_row(Matrix<T>& A, int row1, int row2, T koef); // row1 -= row2 * koef
 };
 
 template<typename T, class Func>
-tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const vector<vector<T>>& A,
+tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const Matrix<T>& A,
                                                                           const SolverMethod& method_) {
   vector<int> ans_order(A.size());
-  vector<vector<T>> L(A.size(), vector<T>(A.size(), 0)), U(A), P(A.size(), vector<T>(A.size(), 0));
+  Matrix<T> L(A.size(), vector<T>(A.size(), 0)), U(A), P(A.size(), vector<T>(A.size(), 0));
   for (
       int i = 0;
       i < A.
@@ -160,7 +162,7 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const 
 }
 
 template<typename T, class Func>
-void Solver<T, Func>::substract_str(vector<vector<T>>& A, int row, int stage) {
+void Solver<T, Func>::substract_str(Matrix<T>& A, int row, int stage) {
   T koef = A[row][stage];
   for (int col = stage; col < A[0].size(); ++col) {
     A[row][col] -= A[stage][col] * koef;
@@ -168,9 +170,9 @@ void Solver<T, Func>::substract_str(vector<vector<T>>& A, int row, int stage) {
 }
 
 template<typename T, class Func>
-vector<vector<T>> Solver<T, Func>::SolveSystemUsingLU(vector<vector<T>> A,
-                                                      vector<vector<T>> B,
-                                                      const SolverMethod& method_) {
+Matrix<T> Solver<T, Func>::SolveSystemUsingLU(Matrix<T> A,
+                                              Matrix<T> B,
+                                              const SolverMethod& method_) {
 
 //
 //   * A = LU
@@ -181,7 +183,7 @@ vector<vector<T>> Solver<T, Func>::SolveSystemUsingLU(vector<vector<T>> A,
 //   * 2) UX=Y, L is upper-diagonal
 //   * return x
 
-  vector<vector<T>> L, U, P;
+  Matrix<T> L, U, P;
   tie(L, U, P) = LUP_Decomposition(A, method_);
   for (int i = 0; i < A.size(); ++i) {
     for (int j = 0; j < i; ++j) {
@@ -203,7 +205,7 @@ vector<vector<T>> Solver<T, Func>::SolveSystemUsingLU(vector<vector<T>> A,
 }
 
 template<typename T, class Func>
-int Solver<T, Func>::best_in_the_row(const vector<vector<T>>& A, int row) {
+int Solver<T, Func>::best_in_the_row(const Matrix<T>& A, int row) {
   int best_column = row;
   for (int column = row + 1; column < A[0].size(); ++column) {
     if (Func()(A[row][column], A[row][best_column])) {
@@ -213,7 +215,7 @@ int Solver<T, Func>::best_in_the_row(const vector<vector<T>>& A, int row) {
   return best_column;
 }
 template<typename T, class Func>
-int Solver<T, Func>::best_in_the_col(const vector<vector<T>>& A, int col) {
+int Solver<T, Func>::best_in_the_col(const Matrix<T>& A, int col) {
   int best_row = col;
   for (int i = col + 1; i < A[0].size(); ++i) {
     if (Func()(A[i][col], A[best_row][col])) {
@@ -223,7 +225,7 @@ int Solver<T, Func>::best_in_the_col(const vector<vector<T>>& A, int col) {
   return best_row;
 }
 template<typename T, class Func>
-pair<int, int> Solver<T, Func>::best_in_the_sqr(const vector<vector<T>>& A, int start_i, int start_j) {
+pair<int, int> Solver<T, Func>::best_in_the_sqr(const Matrix<T>& A, int start_i, int start_j) {
   int best_i = start_i, best_j = start_j;
   for (int i = start_i; i < A.size(); ++i) {
     for (int j = start_j; j < A.size(); ++j) {
@@ -235,7 +237,7 @@ pair<int, int> Solver<T, Func>::best_in_the_sqr(const vector<vector<T>>& A, int 
   return make_pair(best_i, best_j);
 }
 template<typename T, class Func>
-void Solver<T, Func>::Print(const vector<vector<T>>& A, const vector<int>& ans_order) const {
+void Solver<T, Func>::Print(const Matrix<T>& A, const vector<int>& ans_order) const {
   for (int i = 0; i < A.size(); ++i) {
     for (auto& j : A[i]) {
       cout << j << " ";
@@ -249,7 +251,7 @@ void Solver<T, Func>::Print(const vector<vector<T>>& A, const vector<int>& ans_o
   cout << endl;
 }
 template<typename T, class Func>
-void Solver<T, Func>::Print(const vector<vector<T>>& A) const {
+void Solver<T, Func>::Print(const Matrix<T>& A) const {
   for (int i = 0; i < A.size(); ++i) {
     for (auto& j : A[i]) {
       cout << j << " ";
@@ -259,13 +261,13 @@ void Solver<T, Func>::Print(const vector<vector<T>>& A) const {
   cout << endl;
 }
 template<typename T, class Func>
-void Solver<T, Func>::swap_rows(vector<vector<T>>& A, int row1, int row2) {
+void Solver<T, Func>::swap_rows(Matrix<T>& A, int row1, int row2) {
   // cout << "Swapped rows " << row1 << " " << row2 << endl;
   if (row1 == row2) return;
   swap(A[row1], A[row2]);
 }
 template<typename T, class Func>
-void Solver<T, Func>::swap_columns(vector<vector<T>>& A, int col1, int col2, vector<int>& ans_order) {
+void Solver<T, Func>::swap_columns(Matrix<T>& A, int col1, int col2, vector<int>& ans_order) {
   // cout << "Swapped columns " << col1 << " " << col2 << endl;
   swap(ans_order[col1], ans_order[col2]);
   if (col1 == col2) return;
@@ -274,7 +276,7 @@ void Solver<T, Func>::swap_columns(vector<vector<T>>& A, int col1, int col2, vec
   }
 }
 template<typename T, class Func>
-void Solver<T, Func>::swap_columns(vector<vector<T>>& A, int col1, int col2) {
+void Solver<T, Func>::swap_columns(Matrix<T>& A, int col1, int col2) {
   // cout << "Swapped columns " << col1 << " " << col2 << endl;
   if (col1 == col2) return;
   for (int row = 0; row < A.size(); ++row) {
@@ -282,15 +284,15 @@ void Solver<T, Func>::swap_columns(vector<vector<T>>& A, int col1, int col2) {
   }
 }
 template<typename T, class Func>
-void Solver<T, Func>::normalize_row(vector<vector<T>>& A, int row) {
+void Solver<T, Func>::normalize_row(Matrix<T>& A, int row) {
   T koef = A[row][row];
   for (int col = row; col < A[0].size(); ++col) {
     A[row][col] /= koef;
   }
 }
 template<typename T, class Func>
-vector<vector<T>> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<vector<T>> B, const SolverMethod& method_) {
-
+Matrix<T> Solver<T, Func>::SolveSystem(Matrix<T> A, Matrix<T> B, const SolverMethod& method_) {
+  auto AA(A);
   vector<int> ans_order(A.size());
   for (int i = 0; i < A.size(); ++i) {
     ans_order[i] = i;
@@ -317,15 +319,21 @@ vector<vector<T>> Solver<T, Func>::SolveSystem(vector<vector<T>> A, vector<vecto
 
   // Print(A, ans_order);
 
-//  vector<vector<T>> ans(A.size());
+//  Matrix<T> ans(A.size());
 //  for (size_t i = 0; i < A.size(); ++i) {
 //    ans[ans_order[i]] = B[i];
 //  }
-  return extractAnsMatrixFromExtended(A);
+  auto ans = extractAnsMatrixFromExtended(A);
+  Matrix<T> X(vector<vector<T>>(ans.size(), vector<T>(ans.size(), T(0))));
+  for(int i = 0; i < ans.size(); ++i) {
+    X[ans_order[i]] = ans[i];
+  }
+  assert(mult(AA, X) == B);
+  return ans;
 }
 
 template<typename T, class Func>
-void Solver<T, Func>::SolveStage(vector<vector<T>>& A, int stage, const SolverMethod& method_, vector<int>& ans_order) {
+void Solver<T, Func>::SolveStage(Matrix<T>& A, int stage, const SolverMethod& method_, vector<int>& ans_order) {
   // cout << "Solve stage(for A) " << stage << endl;
   switch (method_) {
     case SolverMethod::DO_NOT_TOUCH : {
@@ -361,22 +369,22 @@ void Solver<T, Func>::SolveStage(vector<vector<T>>& A, int stage, const SolverMe
 
 }
 template<typename T, class Func>
-vector<vector<T>> Solver<T, Func>::makeExtended(const vector<vector<T>>& A, const vector<vector<T>>& B) {
-  vector<vector<T>> AA(A);
+Matrix<T> Solver<T, Func>::makeExtended(const Matrix<T>& A, const Matrix<T>& B) {
+  Matrix<T> AA(A);
   for (int i = 0; i < AA.size(); ++i) {
     std::copy(begin(B[i]), end(B[i]), std::back_inserter(AA[i]));
   }
   return AA;
 }
 template<typename T, class Func>
-void Solver<T, Func>::sub_row(vector<vector<T>>& A, int row1, int row2, T koef) {
+void Solver<T, Func>::sub_row(Matrix<T>& A, int row1, int row2, T koef) {
   for (int j = 0; j < A[0].size(); ++j) {
     A[row1][j] -= A[row2][j] * koef;
   }
 }
 template<typename T, class Func>
-vector<vector<T>> Solver<T, Func>::extractAnsMatrixFromExtended(const vector<vector<T>>& A) {
-  vector<vector<T>> B(A[0].size() - A.size(), vector<T>(A[0].size() - A.size()));
+Matrix<T> Solver<T, Func>::extractAnsMatrixFromExtended(const Matrix<T>& A) {
+  Matrix<T> B(A[0].size() - A.size(), vector<T>(A[0].size() - A.size()));
   for (int i = 0; i < A.size(); ++i) {
     for (int j = A.size(); j < A[0].size(); ++j) {
       B[i][j - A.size()] = A[i][j];
@@ -398,25 +406,23 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Step(Mat
   vector<int> ans_order(A.size());
   swap_columns(A, stage, best_pos.second, ans_order);
 
-  // normalization
   L[stage][stage] = T(1) / A[stage][stage];
   for (int col = stage; col < A.size(); ++col) {
     A[stage][col] /= A[stage][stage];
   }
 
-  // gauss step
   for (int row = stage + 1; row < A.size(); ++row) {
-    L[row][stage] = A[row][stage] / A[stage][stage]; /// WARNING NON ZERO BLYATb
+    L[row][stage] = A[row][stage] / A[stage][stage];
     sub_row(A, row, stage, A[row][stage] / A[stage][stage]);
   }
 
   return tie(L, D, A, P);
 }
 template<typename T, class Func>
-tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decomposition(Matrix<T>& A) {
+tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decomposition(Matrix<T> A) {
   int n = A.size();
   vector<Matrix<T>> Ps, Ds;
-  Matrix<T> L(n, vector<T>(n, T(0))), U(A), I(getIdentityMatrix<T>(n));
+  Matrix<T> L(n, vector<T>(n, T(0))), U(move(A)), I(getIdentityMatrix<T>(n));
 
   bool is_first = true;
   for (int stage = 0; stage < n; ++stage) {
@@ -437,6 +443,8 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
     swap(D[stage], D[best_pos.first]);
     Ps.push_back(P);
     Ds.push_back(D);
+
+    PrintMatrix(U, "U after changes");
 
     if (is_first) {
       is_first = false;
@@ -466,7 +474,7 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
   }
 
   Matrix<T> P = I;
-  for (int i = Ps.size() - 1; i >= 0; --i) {
+  for (int i = 0; i < Ps.size(); ++i) {
     P = mult(P, Ps[i]);
   }
 
@@ -475,21 +483,23 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
     D = mult(D, Ds[i]);
   }
 
-  D = GetReversed(D);
-  P = GetReversed(P);
+  // D = GetReversed(D);
+  // P = GetReversed(P);
 
   return tie(D, L, U, P);
-  // }
 }
 template<typename T, class Func>
-Matrix<T> Solver<T, Func>::GetReversed(vector<vector<T>> A) {
-  return SolveSystem(A, getIdentityMatrix<T>(A.size()), SolverMethod::DO_NOT_TOUCH);
+Matrix<T> Solver<T, Func>::GetReversed(Matrix<T> A) {
+  auto ans = SolveSystem(A, getIdentityMatrix<T>(A.size()), SolverMethod::DO_NOT_TOUCH);
+  assert(mult(A, ans) == getIdentityMatrix<T>(A.size()));
+  return ans;
 }
 template<typename T, class Func>
 Matrix<T> Solver<T, Func>::GetReversedAndDebugUsingDLUP(Matrix<T> A) {
   Matrix<T> L, D, U, P;
   tie(D, L, U, P) = DLUP_Decomposition(A);
-  Matrix<T> Y = SolveSystem(L,mult(GetReversed(D),GetReversed(P)));
+  auto smth = mult(mult((D), getIdentityMatrix<T>(A.size())), (P));
+  Matrix<T> Y = SolveSystem(L, smth);
   return SolveSystem(U, Y);
 }
 
