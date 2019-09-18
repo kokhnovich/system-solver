@@ -22,6 +22,7 @@ Matrix<T> mult(Matrix<T> A, Matrix<T> B) {
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO class LatexWriter
+
 template<class T>
 struct greater_using_abs {
   bool operator()(const T& x, const T& y) const { return abs(x) > abs(y); }
@@ -160,12 +161,13 @@ void SolveMyZALUPHomeWorkAboutDLUP() {
   PrintMatrix(dlup, "(D^{-1}L) (UP^{-1})");
 
   cout << (dlup == A ? "Wonderful!" : "ZLUP") << endl;
+  assert(dlup == A);
   PrintMatrix(mult(L, U), "LU");
   PrintMatrix(mult(mult((D), AA), (P)), "DAP");
 
   // LUX = DEP
 
-  solver->SolveSystem(L, mult(D, P));
+  PrintMatrix(mult(D, P), "DP");
 
 //  auto AAA = solver->GetReversedAndDebugUsingDLUP(AA);
 //  PrintMatrix(AAA, "A^{-1}");

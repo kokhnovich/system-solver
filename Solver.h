@@ -47,9 +47,7 @@ vector<T> operator*(T koef, const vector<T>& one) {
  *
 **/
 
-
-
-template<typename T, class Func=std::greater<T>>
+template<typename T, class Func=greater_using_abs<T>>
 class Solver {
  public:
   explicit Solver() = default;
