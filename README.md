@@ -1,16 +1,17 @@
 ### system-solver
 
-Solver the equation AX=B in case of $A_{nn}$ . Assumes that the solution exists.
+#### It can:
+- Solve equation AX=B
+- Find inverse matrix
+- Make DLUP decomposition
+- Solve AX=B and find inverse using DLUP decomposition
 
-Uses Gauss method. You can choose the type of Gauss solver method: finding max(or min, or any function you want) in the row, column or matrix.
+You can always choose method:
+- BEST_IN_THE_ROW
+- BEST_IN_THE_COLUMN
+- BEST_IN_THE_MATRIX
+- DO_NOT_TOUCH (usual)
 
-#### update 09.11.2019
+"best" mean most suitable for the function you gave as template(as default = greater_using_abs)
 
-Add LU decomposition method
-
-A = LU
-
-It's better to debug every step of computations.
-
-
-###### update 09.13.2019: any help will be very welcomed
+Enjoy!
