@@ -47,6 +47,10 @@ vector<T> operator*(T koef, const vector<T>& one) {
  *
 **/
 
+struct ThreeDiagonal {
+  int a, b, c;
+};
+
 template<typename T, class Func=greater_using_abs<T>>
 class Solver {
  public:
@@ -68,6 +72,10 @@ class Solver {
   /// L D U P, such as A = D^{-1} L U P^{-1}
   tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Step(Matrix<T>& A, int stage);
   tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Decomposition(Matrix<T> A);
+
+  tuple<Matrix<T>, Matrix<T>> LDL_Decomposition(Matrix<T> A);
+
+  vector<T> SolveThreeDiagonalSystem(vector<ThreeDiagonal> A, vector<T> b);
 
  private:
 
@@ -499,6 +507,22 @@ Matrix<T> Solver<T, Func>::GetReversedAndDebugUsingDLUP(Matrix<T> A) {
   auto smth = mult(mult((D), getIdentityMatrix<T>(A.size())), (P));
   Matrix<T> Y = SolveSystem(L, smth);
   return SolveSystem(U, Y);
+}
+template<typename T, class Func>
+tuple<Matrix<T>, Matrix<T>> Solver<T, Func>::LDL_Decomposition(Matrix<T> A) {
+  return tuple<Matrix<T>, Matrix<T>>();
+}
+template<typename T, class Func>
+vector<T> Solver<T, Func>::SolveThreeDiagonalSystem(vector<ThreeDiagonal> A, vector<T> b) {
+  for(int i = 1; i < A.size(); ++i) {
+    T k = A[i].a / A[i - 1].b;
+    A[i].a -= k * A[i - 1].b;
+    A[i].b -= k * A[i - 1].c;
+  }
+  for(const auto& i : A) {
+    cout << i.a << " " << i.b << " " << i.c << endl;
+  }
+  return vector<T>();
 }
 
 #endif //SYSTEM_SOLVER__SOLVER_H_
