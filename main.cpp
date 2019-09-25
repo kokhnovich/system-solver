@@ -47,14 +47,14 @@ Matrix<T> getIdentityMatrix(int n) {
 
 #include "Fraction.h"
 #include "test_runner.h"
-#include "Solver.h"
+#include "Solver.cpp"
 #include "Debug.h"
 #include "tests.cpp"
 
 void SolveMyHomeWorkAboutDLUP() {
   Matrix<Fraction> A = {{1, 3, 2},
-                         {3, 5, 7},
-                         {4, 5, 8}}, L, D, U, P;
+                        {3, 5, 7},
+                        {4, 5, 8}}, L, D, U, P;
   auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
 
   PrintMatrix(A, "A before");
@@ -81,6 +81,13 @@ void SolveMyHomeWorkAboutDLUP() {
 
 int main() {
   // SolveMyHomeWorkAboutDLUP();
-
+  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
+  vector<ThreeDiagonal<Fraction>> a = {{0, 2, 3},
+                                       {1, 3, 2},
+                                       {2, 2, 8},
+                                       {4, 2, 4},
+                                       {2, 4, 0}};
+  vector<Fraction> b = {5, 6, 12, 10, 6};
+  solver->SolveThreeDiagonalSystem(a, b);
   return 0;
 }

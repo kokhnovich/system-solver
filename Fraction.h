@@ -110,4 +110,5 @@ Fraction abs(const Fraction& val) {
   return Fraction(abs(val.numerator), abs(val.denominator));
 }
 
+
 #endif //SYSTEM_SOLVER__FRACTION_H_
