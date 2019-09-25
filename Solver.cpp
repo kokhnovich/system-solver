@@ -33,17 +33,14 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const 
       L[row][stage] = k;
       sub_row(U, row, stage, k);
     }
-
-    cout << "stage " << stage << endl;
-    // PrintMatrix(L, "L");
-    // Print(U, ans_order);
   }
 
   for (int i = 0; i < A.size(); ++i) {
     P[i][ans_order[i]] = 1;
   }
-  return
-      make_tuple(L, U, P);
+
+  // assert(compareMatrixOfDouble(mult(mult(L, U), P), A));
+  return make_tuple(L, U, P);
 }
 
 template<typename T, class Func>
@@ -64,24 +61,24 @@ Matrix<T> Solver<T, Func>::SolveSystemUsingLU(Matrix<T> A,
 
   Matrix<T> L, U, P;
   tie(L, U, P) = LUP_Decomposition(A, method_);
-
+//  PrintMatrix(L, "L");
+//  PrintMatrix(U, "U");
+//  PrintMatrix(P, "P");
   // @TODO cant be optimized
   for (int i = 0; i < A.size(); ++i) {
     for (int j = 0; j < i; ++j) {
       sub_row(B, i, j, L[i][j]);
-      L[i][j] = 0;
     }
   }
-
-  // PrintMatrix(B, "Y in lu -1");
 
   for (int i = A.size() - 1; i >= 0; --i) {
     for (int j = i + 1; j < A.size(); ++j) {
       sub_row(B, i, j, U[i][j]);
-      U[i][j] = 0;
+    }
+    for (auto& j : B[i]) {
+      j /= U[i][i];
     }
   }
-
   return B;
 }
 

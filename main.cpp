@@ -26,7 +26,7 @@ Matrix<T> generateRandomSymmetricMatrix(int size_, int min_elem = -100, int max_
   Matrix<T> a(size_, vector<T>(size_));
   for (int i = 0; i < size_; ++i) {
     for (int j = 0; j < size_; ++j) {
-      if (j <= i) {
+      if (j < i) {
         a[i][j] = a[j][i];
       } else {
         a[i][j] = udist(generator);
@@ -36,24 +36,26 @@ Matrix<T> generateRandomSymmetricMatrix(int size_, int min_elem = -100, int max_
   return a;
 }
 
-bool compareDouble(double d1, double d2, double EPS = 1e-9) {
+double EPS = 1e-5;
+
+inline bool compareDouble(double d1, double d2) {
   return abs(d1 - d2) <= EPS;
 }
 
-bool compareVectorOfDouble(const vector<double>& A1, const vector<double>& A2, double EPS = 1e-9) {
+inline bool compareVectorOfDouble(const vector<double>& A1, const vector<double>& A2) {
   assert(A1.size() == A2.size());
   for (int i = 0; i < A1.size(); ++i) {
-    if (!compareDouble(A1[i], A2[i], EPS)) {
+    if (!compareDouble(A1[i], A2[i])) {
       return false;
     }
   }
   return true;
 }
 
-bool compareMatrixOfDouble(const Matrix<double>& A1, const Matrix<double>& A2, double EPS = 1e-9) {
+inline bool compareMatrixOfDouble(const Matrix<double>& A1, const Matrix<double>& A2) {
   assert(A1.size() == A2.size());
   for (int i = 0; i < A1.size(); ++i) {
-    if (!compareVectorOfDouble(A1[i], A2[i], EPS)) {
+    if (!compareVectorOfDouble(A1[i], A2[i])) {
       return false;
     }
   }
@@ -91,6 +93,16 @@ Matrix<T> make2Dfrom1D(const vector<T>& a, bool Nx1 = true) {
   }
 }
 
+// @TODO add functionality
+template<typename T>
+vector<T> make1Dfrom2D(const Matrix<T>& a) {
+  vector<T> ans(a.size());
+  for(int i = 0; i < a.size(); ++i) {
+    ans[i] = a[i][0];
+  }
+  return ans;
+}
+
 // @TODO LABAAA
 // @TODO norm tests
 // @TODO optimize using profiler
@@ -120,8 +132,8 @@ Matrix<T> getIdentityMatrix(int n) {
 
 #include "Fraction.h"
 #include "test_runner.h"
-#include "Solver.cpp"
 #include "Debug.h"
+#include "Solver.cpp"
 #include "tests.cpp"
 #include "profile.h"
 
