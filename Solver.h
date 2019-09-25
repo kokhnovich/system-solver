@@ -67,7 +67,7 @@ class Solver {
   Matrix<T> GetReversed(Matrix<T> A);
   Matrix<T> GetReversedAndDebugUsingDLUP(Matrix<T> A);
 
-  void Print(const Matrix<T>& A, const vector<int>& ans_order) const;
+  static void Print(const Matrix<T>& A, const vector<int>& ans_order);
   void Print(const Matrix<T>& A) const;
   void PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) const;
 
@@ -98,6 +98,5 @@ class Solver {
   void substract_str(Matrix<T>& A, int row, int stage);
   void sub_row(Matrix<T>& A, int row1, int row2, T koef); // row1 -= row2 * koef
 };
-
 
 #endif //SYSTEM_SOLVER__SOLVER_H_

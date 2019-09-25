@@ -19,6 +19,54 @@ Matrix<T> mult(Matrix<T> A, Matrix<T> B) {
   return R;
 }
 
+template<typename T>
+Matrix<T> generateRandomSymmetricMatrix(int size_, int min_elem = -100, int max_elem = 100) {
+  std::uniform_int_distribution<std::mt19937_64::result_type> udist(min_elem, max_elem);
+  std::mt19937_64 generator(std::random_device{}());
+  Matrix<T> a(size_, vector<T>(size_));
+  for (int i = 0; i < size_; ++i) {
+    for (int j = 0; j < size_; ++j) {
+      if (j <= i) {
+        a[i][j] = a[j][i];
+      } else {
+        a[i][j] = udist(generator);
+      }
+    }
+  }
+  return a;
+}
+
+template<typename T>
+vector<T> generateAnsMatrix(const Matrix<T>& A, const vector<T>& x) {
+  vector<T> ans(A.size());
+  for (int i = 0; i < A.size(); ++i) {
+    ans[i] = T(0);
+    for (int j = 0; j < A.size(); ++j) {
+      ans[i] += x[j] * A[i][j];
+    }
+  }
+  return ans;
+}
+
+/// Nx1 == true  <=> ans.size() == n && ans[i].size() == 1 \forall i
+/// Nx1 == false <=> ans.size() == 1 && ans[i].size() == n \forall i
+template<typename T>
+Matrix<T> make2Dfrom1D(const vector<T>& a, bool Nx1 = true) {
+  if (Nx1) {
+    Matrix<T> ans(a.size(), vector<T>(1));
+    for (int i = 0; i < a.size(); ++i) {
+      ans[i][0] = a[i];
+    }
+    return ans;
+  } else {
+    Matrix<T> ans(1, vector<T>(a.size()));
+    for (int i = 0; i < a.size(); ++i) {
+      ans[0][i] = a[i];
+    }
+    return ans;
+  }
+}
+
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO class LatexWriter
@@ -50,11 +98,12 @@ Matrix<T> getIdentityMatrix(int n) {
 #include "Solver.cpp"
 #include "Debug.h"
 #include "tests.cpp"
+#include "profile.h"
 
 void SolveMyHomeWorkAboutDLUP() {
-  Matrix<Fraction> A = {{1, 3, 2},
-                        {3, 5, 7},
-                        {4, 5, 8}}, L, D, U, P;
+  Matrix < Fraction > A = {{1, 3, 2},
+                           {3, 5, 7},
+                           {4, 5, 8}}, L, D, U, P;
   auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
 
   PrintMatrix(A, "A before");
@@ -79,14 +128,17 @@ void SolveMyHomeWorkAboutDLUP() {
   PrintMatrix(mult(D, P), "DP");
 }
 
+#include "cma_lab_tasks.cpp"
 int main() {
+  PrintMatrix(generateRandomSymmetricMatrix<Fraction>(10), "random sym matrix");
   // SolveMyHomeWorkAboutDLUP();
   auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
-  vector<ThreeDiagonal<Fraction>> a = {{0, 2, 3},
-                                       {1, 3, 2},
-                                       {2, 2, 8},
-                                       {4, 2, 4},
-                                       {2, 4, 0}};
+  vector<ThreeDiagonal<Fraction>>
+      a = {{0, 2, 3},
+           {1, 3, 2},
+           {2, 2, 8},
+           {4, 2, 4},
+           {2, 4, 0}};
   vector<Fraction> b = {5, 6, 12, 10, 6};
   solver->SolveThreeDiagonalSystem(a, b);
   return 0;

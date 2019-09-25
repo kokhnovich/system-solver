@@ -8,22 +8,11 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const 
                                                                           const SolverMethod& method_) {
   vector<int> ans_order(A.size());
   Matrix<T> L(A.size(), vector<T>(A.size(), 0)), U(A), P(A.size(), vector<T>(A.size(), 0));
-  for (
-      int i = 0;
-      i < A.
-          size();
-      ++i) {
-    ans_order[i] =
-        i;
-
+  for (int i = 0; i < A.size(); ++i) {
+    ans_order[i] = i;
   }
-  Print(U, ans_order
-  );
-  for (
-      int stage = 0;
-      stage < U.
-          size();
-      ++stage) {
+  Print(U, ans_order);
+  for (int stage = 0; stage < U.size(); ++stage) {
     L[stage][stage] = 1;
     switch (method_) {
       case SolverMethod::BEST_IN_ROW : {
@@ -39,38 +28,22 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const 
     }
     if (U[stage][stage] == T(0)) continue;
 
-    for (
-        int row = stage + 1;
-        row < A.
-            size();
-        ++row) {
+    for (int row = stage + 1; row < A.size(); ++row) {
       T k = U[row][stage] / U[stage][stage];
-      L[row][stage] =
-          k;
-      sub_row(U, row, stage, k
-      );
-// Print(A, ans_order);
+      L[row][stage] = k;
+      sub_row(U, row, stage, k);
     }
 
-// Print(U, ans_order);
-    cout << "stage " << stage <<
-         endl;
-    PrintMatrix(L,
-                "L");
-    Print(U, ans_order
-    );
+    cout << "stage " << stage << endl;
+    PrintMatrix(L, "L");
+    Print(U, ans_order);
   }
 
-  for (
-      int i = 0;
-      i < A.
-          size();
-      ++i) {
+  for (int i = 0; i < A.size(); ++i) {
     P[i][ans_order[i]] = 1;
   }
   return
-      make_tuple(L, U, P
-      );
+      make_tuple(L, U, P);
 }
 
 template<typename T, class Func>
@@ -149,7 +122,7 @@ pair<int, int> Solver<T, Func>::best_in_the_sqr(const Matrix<T>& A, int start_i,
   return make_pair(best_i, best_j);
 }
 template<typename T, class Func>
-void Solver<T, Func>::Print(const Matrix<T>& A, const vector<int>& ans_order) const {
+void Solver<T, Func>::Print(const Matrix<T>& A, const vector<int>& ans_order) {
   for (int i = 0; i < A.size(); ++i) {
     for (auto& j : A[i]) {
       cout << j << " ";
@@ -231,12 +204,9 @@ Matrix<T> Solver<T, Func>::SolveSystem(Matrix<T> A, Matrix<T> B, const SolverMet
 
   // Print(A, ans_order);
 
-//  Matrix<T> ans(A.size());
-//  for (size_t i = 0; i < A.size(); ++i) {
-//    ans[ans_order[i]] = B[i];
-//  }
+
   auto ans = extractAnsMatrixFromExtended(A);
-  Matrix<T> X(vector<vector<T>>(ans.size(), vector<T>(ans.size(), T(0))));
+  Matrix<T> X(vector<vector<T >>(ans.size(), vector<T>(ans[0].size(), T(0))));
   for (int i = 0; i < ans.size(); ++i) {
     X[ans_order[i]] = ans[i];
   }
@@ -296,7 +266,7 @@ void Solver<T, Func>::sub_row(Matrix<T>& A, int row1, int row2, T koef) {
 }
 template<typename T, class Func>
 Matrix<T> Solver<T, Func>::extractAnsMatrixFromExtended(const Matrix<T>& A) {
-  Matrix<T> B(A[0].size() - A.size(), vector<T>(A[0].size() - A.size()));
+  Matrix<T> B(A.size(), vector<T>(A[0].size() - A.size()));
   for (int i = 0; i < A.size(); ++i) {
     for (int j = A.size(); j < A[0].size(); ++j) {
       B[i][j - A.size()] = A[i][j];
