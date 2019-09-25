@@ -11,7 +11,7 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const 
   for (int i = 0; i < A.size(); ++i) {
     ans_order[i] = i;
   }
-  Print(U, ans_order);
+  // Print(U, ans_order);
   for (int stage = 0; stage < U.size(); ++stage) {
     L[stage][stage] = 1;
     switch (method_) {
@@ -35,8 +35,8 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::LUP_Decomposition(const 
     }
 
     cout << "stage " << stage << endl;
-    PrintMatrix(L, "L");
-    Print(U, ans_order);
+    // PrintMatrix(L, "L");
+    // Print(U, ans_order);
   }
 
   for (int i = 0; i < A.size(); ++i) {
@@ -59,17 +59,13 @@ Matrix<T> Solver<T, Func>::SolveSystemUsingLU(Matrix<T> A,
                                               Matrix<T> B,
                                               const SolverMethod& method_) {
 
-//
-//   * A = LU
-//   * Ax=b
-//   * LUX=B
-//   * [y=Ux]
 //   * 1) LY=B, L is lower-diagonal with ones on diagonal
 //   * 2) UX=Y, L is upper-diagonal
-//   * return x
 
   Matrix<T> L, U, P;
   tie(L, U, P) = LUP_Decomposition(A, method_);
+
+  // @TODO cant be optimized
   for (int i = 0; i < A.size(); ++i) {
     for (int j = 0; j < i; ++j) {
       sub_row(B, i, j, L[i][j]);
@@ -77,7 +73,7 @@ Matrix<T> Solver<T, Func>::SolveSystemUsingLU(Matrix<T> A,
     }
   }
 
-  PrintMatrix(B, "Y in lu -1");
+  // PrintMatrix(B, "Y in lu -1");
 
   for (int i = A.size() - 1; i >= 0; --i) {
     for (int j = i + 1; j < A.size(); ++j) {
@@ -210,7 +206,7 @@ Matrix<T> Solver<T, Func>::SolveSystem(Matrix<T> A, Matrix<T> B, const SolverMet
   for (int i = 0; i < ans.size(); ++i) {
     X[ans_order[i]] = ans[i];
   }
-  assert(mult(AA, X) == B);
+  // assert(mult(AA, X) == B);
   return ans;
 }
 

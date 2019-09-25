@@ -36,6 +36,30 @@ Matrix<T> generateRandomSymmetricMatrix(int size_, int min_elem = -100, int max_
   return a;
 }
 
+bool compareDouble(double d1, double d2, double EPS = 1e-9) {
+  return abs(d1 - d2) <= EPS;
+}
+
+bool compareVectorOfDouble(const vector<double>& A1, const vector<double>& A2, double EPS = 1e-9) {
+  assert(A1.size() == A2.size());
+  for (int i = 0; i < A1.size(); ++i) {
+    if (!compareDouble(A1[i], A2[i], EPS)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool compareMatrixOfDouble(const Matrix<double>& A1, const Matrix<double>& A2, double EPS = 1e-9) {
+  assert(A1.size() == A2.size());
+  for (int i = 0; i < A1.size(); ++i) {
+    if (!compareVectorOfDouble(A1[i], A2[i], EPS)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 template<typename T>
 vector<T> generateAnsMatrix(const Matrix<T>& A, const vector<T>& x) {
   vector<T> ans(A.size());
@@ -67,6 +91,7 @@ Matrix<T> make2Dfrom1D(const vector<T>& a, bool Nx1 = true) {
   }
 }
 
+// @TODO LABAAA
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO class LatexWriter
@@ -130,16 +155,18 @@ void SolveMyHomeWorkAboutDLUP() {
 
 #include "cma_lab_tasks.cpp"
 int main() {
-  PrintMatrix(generateRandomSymmetricMatrix<Fraction>(10), "random sym matrix");
-  // SolveMyHomeWorkAboutDLUP();
-  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
-  vector<ThreeDiagonal<Fraction>>
-      a = {{0, 2, 3},
-           {1, 3, 2},
-           {2, 2, 8},
-           {4, 2, 4},
-           {2, 4, 0}};
-  vector<Fraction> b = {5, 6, 12, 10, 6};
-  solver->SolveThreeDiagonalSystem(a, b);
+//  PrintMatrix(generateRandomSymmetricMatrix<Fraction>(10), "random sym matrix");
+//  // SolveMyHomeWorkAboutDLUP();
+//  auto solver = new Solver<Fraction, greater_using_abs<Fraction>>();
+//  vector<ThreeDiagonal<Fraction>>
+//      a = {{0, 2, 3},
+//           {1, 3, 2},
+//           {2, 2, 8},
+//           {4, 2, 4},
+//           {2, 4, 0}};
+//  vector<Fraction> b = {5, 6, 12, 10, 6};
+//  solver->SolveThreeDiagonalSystem(a, b);
+
+  SolveTask3();
   return 0;
 }

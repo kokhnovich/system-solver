@@ -17,5 +17,16 @@ void PrintMatrix(const vector<vector<T>>& a, const string& message = "") {
   cout << "\n\n";
 }
 
+template<typename T>
+void PrintPartOfMatrix(const vector<vector<T>>& a, int size_ = 8, const string& message = "") {
+  cout << message << ":\n";
+  for (int i = 0; i < min(size, a.size()); ++i) {
+    for (int j = 0; j < min(size_, a[i].size(); ++j)) {
+      cout << a[i][j] << " ";
+    }
+    cout << endl;
+  }
+  cout << "\n\n";
+}
 
 #endif //SYSTEM_SOLVER__DEBUG_H_

@@ -6,15 +6,15 @@
 #ifndef SYSTEM_SOLVER__FRACTION_H_
 #define SYSTEM_SOLVER__FRACTION_H_
 
-int lcd(int a, int b) {
+long long lcd(long long a, long long b) {
   return a / __gcd(a, b) * b;
 }
 
 class Fraction {
  public:
-  int numerator, denominator;
+  long long numerator, denominator;
 
-  Fraction(int n = 1, int d = 1) : numerator(n), denominator(d) {
+  Fraction(long long n = 1, long long d = 1) : numerator(n), denominator(d) {
     if (denominator == 0) throw logic_error("divide by zero");
     Normalize();
   }
@@ -27,7 +27,7 @@ class Fraction {
       numerator = abs(numerator);
       denominator = abs(denominator);
     }
-    int gcd = __gcd(abs(numerator), abs(denominator));
+    long long gcd = __gcd(abs(numerator), abs(denominator));
     numerator /= gcd;
     denominator /= gcd;
   }
@@ -38,24 +38,24 @@ class Fraction {
   }
 
   Fraction operator+(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.denominator + otherFraction.numerator * denominator;
-    int d = denominator * otherFraction.denominator;
+    long long n = numerator * otherFraction.denominator + otherFraction.numerator * denominator;
+    long long d = denominator * otherFraction.denominator;
     return {n, d};
   }
   Fraction operator-(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.denominator - otherFraction.numerator * denominator;
-    int d = denominator * otherFraction.denominator;
+    long long n = numerator * otherFraction.denominator - otherFraction.numerator * denominator;
+    long long d = denominator * otherFraction.denominator;
 
     return {n, d};
   }
   Fraction operator*(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.numerator;
-    int d = denominator * otherFraction.denominator;
+    long long n = numerator * otherFraction.numerator;
+    long long d = denominator * otherFraction.denominator;
     return {n, d};
   }
   Fraction operator/(const Fraction& otherFraction) const {
-    int n = numerator * otherFraction.denominator;
-    int d = denominator * otherFraction.numerator;
+    long long n = numerator * otherFraction.denominator;
+    long long d = denominator * otherFraction.numerator;
     return {n, d};
   }
 
@@ -66,7 +66,7 @@ class Fraction {
     return !(*this == otherFraction);
   }
   bool operator<(const Fraction& other) const {
-    int lcd_ = lcd(denominator, other.denominator);
+    long long lcd_ = lcd(denominator, other.denominator);
     return numerator * (lcd_ / denominator) < other.numerator * (lcd_ / denominator);
   }
   bool operator>(const Fraction& other) const {
@@ -91,6 +91,9 @@ class Fraction {
     return os;
   }
 
+  operator long long() const {
+    return *this;
+  }
   operator int() const {
     return *this;
   }
