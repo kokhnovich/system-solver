@@ -403,13 +403,20 @@ tuple<Matrix<T>, vector<T>> Solver<T, Func>::LDL_Decomposition(Matrix<T> A) {
   for (int now = 0; now < A.size(); ++now) {
     Assert(A[now][now] != 0, "TRUBA\n");
     if (A[now][now] < T(0)) {
-      A[now][now] *= T(-1);
+      for(int col = now; col < A.size(); ++col) {
+        A[now][col] *= T(-1);
+      }
       D[now] = T(-1);
     }
+
     T k = sqrt(A[now][now]);
     for (int col = now; col < A.size(); ++col) {
       A[now][col] /= k;
     }
+    for(int row = now + 1; row < A.size(); ++row) {
+      sub_row(A, row, now, A[row][now] / A[now][now]);
+    }
+
   }
   return tie(A, D);
 }
@@ -460,13 +467,21 @@ void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) {
 template<typename T, class Func>
 Matrix<T> Solver<T, Func>::SolveSystemUsingLDLt(Matrix<T> A, Matrix<T> B) {
 
-  Matrix<T> L;
-  vector<T> D;
+  Matrix<T> L(1, vector<T>(1, 0));
+  vector<T> D(1, 0);
   tie(L, D) = LDL_Decomposition(A);
+  PrintMatrix(D, "D");
   PrintMatrix(L, "L");
   PrintMatrix(Transpose(L), "L^T");
-  PrintMatrix(mult(L, Transpose(L)), "L /cdot L^T");
+  // PrintMatrix(mult(L, Transpose(L)), "L /cdot L^T");
+  PrintMatrix(mult(Transpose(L), L), "L^T /cdot L");
 
+  Matrix<T> DD(A.size(), vector<T>(A.size(), 0));
+  for(int i = 0; i < A.size(); ++i) {
+    DD[i][i] = D[i];
+  }
+  PrintMatrix(mult(mult(Transpose(L), DD), L), "LDLt");
+  return A;
 }
 
 template<typename T, class Func>

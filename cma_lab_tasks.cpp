@@ -42,15 +42,15 @@ void SolveTask2() {
 
 void SolveTask3() {
   cout << "Solving task 3\n";
-  auto solver = new Solver<double>();
+  auto solver = new Solver<double, greater_using_abs<double>>();
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(-5, 5);
   std::mt19937_64 generator(std::random_device{}());
 
   Matrix<double> A(generateRandomSymmetricMatrix<double>(10, 4, 14));
-  // PrintMatrix(A, "A");
   vector<double> x(10, 1.);
   vector<double> B(generateAnsMatrix(A, x));
   solver->SolveSystemUsingLDLt(A, make2Dfrom1D(B));
+  PrintMatrix(A, "A");
   return;
 
   vector<int> times;
