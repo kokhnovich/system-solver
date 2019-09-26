@@ -106,6 +106,25 @@ vector<T> make1Dfrom2D(const Matrix<T>& a) {
   }
 }
 
+template <typename T>
+vector<T> make1Dfrom2DForOrderMatrixes(const Matrix<T>& a) {
+  vector<T> ans(a.size());
+  for(int i = 0; i < a.size(); ++i) {
+    bool ok = false;
+    for(int j = 0; j < a.size(); ++j) {
+      if (a[i][j]) {
+        ans[i] = j;
+        ok = true;
+        break;
+      }
+    }
+    if (!ok) {
+      assert(false);
+    }
+  }
+  return ans;
+}
+
 template<class T>
 struct greater_using_abs {
   bool operator()(const T& x, const T& y) const { return abs(x) > abs(y); }

@@ -345,7 +345,7 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
     Ps.push_back(P);
     Ds.push_back(D);
 
-    PrintMatrix(U, "U after changes");
+    // PrintMatrix(U, "U after changes");
 
     if (is_first) {
       is_first = false;
@@ -459,7 +459,14 @@ void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) {
 
 template<typename T, class Func>
 Matrix<T> Solver<T, Func>::SolveSystemUsingLDLt(Matrix<T> A, Matrix<T> B) {
-  return Matrix<T>();
+
+  Matrix<T> L;
+  vector<T> D;
+  tie(L, D) = LDL_Decomposition(A);
+  PrintMatrix(L, "L");
+  PrintMatrix(Transpose(L), "L^T");
+  PrintMatrix(mult(L, Transpose(L)), "L /cdot L^T");
+
 }
 
 template<typename T, class Func>
@@ -474,16 +481,39 @@ Matrix<T> Solver<T, Func>::Transpose(Matrix<T> A) {
 }
 template<typename T, class Func>
 vector<T> Solver<T, Func>::SolveLinearSystemUsingDLUP(Matrix<T> A, vector<T> B) {
+  int n = A.size();
 
   Matrix<T> D, L, U, P;
   tie(D, L, U, P) = DLUP_Decomposition(A, SolverMethod::BEST_IN_COLUMN);
-  PrintMatrix(D, "D");
-  PrintMatrix(L, "L");
-  PrintMatrix(U, "U");
-  PrintMatrix(P, "P");
-  if (!compareMatrixOfDouble(A, mult(mult(GetReversed(D), L), mult(U, GetReversed(P))))) {
-    cerr << "jOpA" << endl;
-    assert(false);
+//  PrintMatrix(D, "D");
+//  PrintMatrix(L, "L");
+//  PrintMatrix(U, "U");
+//  PrintMatrix(P, "P");
+//  if (!compareMatrixOfDouble(A, mult(mult(GetReversed(D), L), mult(U, GetReversed(P))))) {
+//    cerr << "Smth goes wrong" << endl;
+//    assert(false);
+//  }
+  vector<T> B_original(B);
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      if (D[i][j]) {
+        B[i] = B_original[j];
+      }
+    }
   }
-  return {};
+  // L Y = B
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < i; ++j) {
+      B[i] -= L[i][j] * B[j];
+    }
+    B[i] /= L[i][i];
+  }
+
+  for (int i = n - 1; i >= 0; --i) {
+    for (int j = i + 1; j < n; ++j) {
+      B[i] -= U[i][j] * B[j];
+    }
+  }
+
+  return B;
 }

@@ -24,6 +24,20 @@ void SolveTask2() {
   PrintMatrix(solver->SolveLinearSystemUsingDLUP(A, b), "Ax=b");
   // 1 2 3 4 5 6 7 8
 
+  Matrix<double> A2 = {
+      {1, 1, 1, 1, 1, 1, 1, 1, 1},
+      {1, 2, 4, 8, 16, 32, 64, 128, 256},
+      {1, 3, 9, 27, 81, 243, 729, 2187, 6561},
+      {1, 4, 16, 64, 256, 1024, 4096, 16384, 65536},
+      {1, 5, 25, 125, 625, 3125, 15625, 78125, 390625},
+      {1, 6, 36, 216, 1296, 7776, 46656, 279936, 1679616},
+      {1, 7, 49, 343, 2401, 16807, 117649, 823543, 5764801},
+      {1, 8, 64, 512, 4096, 32768, 262144, 2097152, 16777216},
+      {1, 9, 81, 729, 6561, 59049, 531441, 4782969, 43046721}
+  };
+  vector<double> b2 = {9, 511, 9841, 87381, 488281, 2015539, 6725601, 19173961, 48427561};
+
+  PrintMatrix(solver->SolveLinearSystemUsingDLUP(A2, b2), "A2 x = b2");
 }
 
 void SolveTask3() {
@@ -31,6 +45,14 @@ void SolveTask3() {
   auto solver = new Solver<double>();
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(-5, 5);
   std::mt19937_64 generator(std::random_device{}());
+
+  Matrix<double> A(generateRandomSymmetricMatrix<double>(10, 4, 14));
+  // PrintMatrix(A, "A");
+  vector<double> x(10, 1.);
+  vector<double> B(generateAnsMatrix(A, x));
+  solver->SolveSystemUsingLDLt(A, make2Dfrom1D(B));
+  return;
+
   vector<int> times;
   for (int cnt = 100; cnt <= 2000; cnt += 100) {
     Matrix<double> A(generateRandomSymmetricMatrix<double>(cnt, 0, 10));

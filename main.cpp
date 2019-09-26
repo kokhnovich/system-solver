@@ -9,6 +9,8 @@ using namespace std;
 template<typename T>
 using Matrix = vector<vector<T>>;
 
+
+// @TODO boost storage of rows/column-matrixes
 // @TODO LABAAA
 // @TODO norm tests
 // @TODO optimize using profiler
@@ -37,7 +39,7 @@ int main() {
 //  vector<Fraction> b = {5, 6, 12, 10, 6};
 //  solver->SolveThreeDiagonalSystem(a, b);
 
-  SolveTask2();
-  //SolveTask3();
+  // SolveTask2();
+  SolveTask3();
   return 0;
 }
