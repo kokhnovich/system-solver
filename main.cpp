@@ -37,6 +37,7 @@ int main() {
 //  vector<Fraction> b = {5, 6, 12, 10, 6};
 //  solver->SolveThreeDiagonalSystem(a, b);
 
-  SolveTask3();
+  SolveTask2();
+  //SolveTask3();
   return 0;
 }

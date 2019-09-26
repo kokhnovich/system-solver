@@ -61,19 +61,22 @@ class Solver {
   Matrix<T> SolveSystemUsingLU(Matrix<T> A,
                                Matrix<T> B,
                                const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
+  Matrix<T> SolveSystemUsingLDLt(Matrix<T> A, Matrix<T> B);
   Matrix<T> SolveSystem(Matrix<T> A,
                         Matrix<T> B,
                         const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
   Matrix<T> GetReversed(Matrix<T> A);
-  Matrix<T> GetReversedAndDebugUsingDLUP(Matrix<T> A);
+  vector<T> SolveLinearSystemUsingDLUP(Matrix<T> A, vector<T> B);
+  Matrix<T> Transpose(Matrix<T> A);
 
   static void Print(const Matrix<T>& A, const vector<int>& ans_order);
-  void Print(const Matrix<T>& A) const;
-  void PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) const;
+  static void Print(const Matrix<T>& A);
+  static void PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A);
 
   /// L D U P, such as A = D^{-1} L U P^{-1}
   tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Step(Matrix<T>& A, int stage);
-  tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Decomposition(Matrix<T> A);
+  tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Decomposition(Matrix<T> A,
+                                                                       const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
 
   tuple<Matrix<T>, vector<T>> LDL_Decomposition(Matrix<T> A);
 
@@ -97,6 +100,7 @@ class Solver {
   void normalize_row(Matrix<T>& A, int row);
   void substract_str(Matrix<T>& A, int row, int stage);
   void sub_row(Matrix<T>& A, int row1, int row2, T koef); // row1 -= row2 * koef
+  Matrix<T>& LU_Step(Matrix<T>& B, const Matrix<T>& L, const Matrix<T>& U);
 };
 
 #endif //SYSTEM_SOLVER__SOLVER_H_

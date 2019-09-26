@@ -75,7 +75,7 @@ vector<T> generateAnsMatrix(const Matrix<T>& A, const vector<T>& x) {
 template<typename T>
 Matrix<T> make2Dfrom1D(const vector<T>& a, bool Nx1 = true) {
   if (Nx1) {
-    Matrix<T> ans(a.size(), vector<T>(1));
+    Matrix<T> ans(a.size(), vector<T>(1, 0));
     for (int i = 0; i < a.size(); ++i) {
       ans[i][0] = a[i];
     }

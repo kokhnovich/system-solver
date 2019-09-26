@@ -55,28 +55,34 @@ template<typename T, class Func>
 Matrix<T> Solver<T, Func>::SolveSystemUsingLU(Matrix<T> A,
                                               Matrix<T> B,
                                               const SolverMethod& method_) {
-
-//   * 1) LY=B, L is lower-diagonal with ones on diagonal
-//   * 2) UX=Y, L is upper-diagonal
-
   Matrix<T> L, U, P;
   tie(L, U, P) = LUP_Decomposition(A, method_);
 //  PrintMatrix(L, "L");
 //  PrintMatrix(U, "U");
 //  PrintMatrix(P, "P");
-  // @TODO cant be optimized
-  for (int i = 0; i < A.size(); ++i) {
+  B = LU_Step(B, L, U);
+  return B;
+}
+template<typename T, class Func>
+Matrix<T>& Solver<T, Func>::LU_Step(Matrix<T>& B, const Matrix<T>& L, const Matrix<T>& U) {
+  for (int i = 0; i < B.size(); ++i) {
     for (int j = 0; j < i; ++j) {
       sub_row(B, i, j, L[i][j]);
     }
+    if (L[i][i] != T(1)) {
+      for (auto& j : B[i]) {
+        j /= L[i][i];
+      }
+    }
   }
-
-  for (int i = A.size() - 1; i >= 0; --i) {
-    for (int j = i + 1; j < A.size(); ++j) {
+  for (int i = B.size() - 1; i >= 0; --i) {
+    for (int j = i + 1; j < B.size(); ++j) {
       sub_row(B, i, j, U[i][j]);
     }
-    for (auto& j : B[i]) {
-      j /= U[i][i];
+    if (U[i][i] != T(1)) {
+      for (auto& j : B[i]) {
+        j /= U[i][i];
+      }
     }
   }
   return B;
@@ -95,7 +101,7 @@ int Solver<T, Func>::best_in_the_row(const Matrix<T>& A, int row) {
 template<typename T, class Func>
 int Solver<T, Func>::best_in_the_col(const Matrix<T>& A, int col) {
   int best_row = col;
-  for (int i = col + 1; i < A[0].size(); ++i) {
+  for (int i = col + 1; i < A.size(); ++i) {
     if (Func()(A[i][col], A[best_row][col])) {
       best_row = i;
     }
@@ -129,7 +135,7 @@ void Solver<T, Func>::Print(const Matrix<T>& A, const vector<int>& ans_order) {
   cout << endl;
 }
 template<typename T, class Func>
-void Solver<T, Func>::Print(const Matrix<T>& A) const {
+void Solver<T, Func>::Print(const Matrix<T>& A) {
   for (int i = 0; i < A.size(); ++i) {
     for (auto& j : A[i]) {
       cout << j << " ";
@@ -294,15 +300,35 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Step(Mat
   return tie(L, D, A, P);
 }
 template<typename T, class Func>
-tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decomposition(Matrix<T> A) {
+tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decomposition(Matrix<T> A,
+                                                                                      const SolverMethod& method_) {
   int n = A.size();
   vector<Matrix<T>> Ps, Ds;
   Matrix<T> L(n, vector<T>(n, T(0))), U(move(A)), I(getIdentityMatrix<T>(n));
 
   bool is_first = true;
   for (int stage = 0; stage < n; ++stage) {
+    pair<int, int> best_pos;
+    switch (method_) {
+      case SolverMethod::BEST_IN_MATRIX: {
+        best_pos = best_in_the_sqr(U, stage, stage);
+        break;
+      }
+      case SolverMethod::BEST_IN_ROW: {
+        best_pos = {stage, best_in_the_row(U, stage)};
+        break;
+      }
+      case SolverMethod::BEST_IN_COLUMN: {
+        best_pos = {best_in_the_col(U, stage), stage};
+        break;
+      }
+      case SolverMethod::DO_NOT_TOUCH: {
+        best_pos = {stage, stage};
+        break;
+      }
+      default:throw logic_error("TBD");
+    }
 
-    auto best_pos = best_in_the_sqr(U, stage, stage);
     swap_rows(U, stage, best_pos.first);
     swap_columns(U, stage, best_pos.second);
 
@@ -341,11 +367,11 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
       sub_row(U, row, stage, U[row][stage]);
     }
 
-    cout << "After stage " << stage << endl;
-    PrintMatrix(U, "U" + to_string(stage));
-    PrintMatrix(L, "L" + to_string(stage));
-    PrintMatrix(P, "P" + to_string(stage));
-    PrintMatrix(D, "D" + to_string(stage));
+//    cout << "After stage " << stage << endl;
+//    PrintMatrix(U, "U" + to_string(stage));
+//    PrintMatrix(L, "L" + to_string(stage));
+//    PrintMatrix(P, "P" + to_string(stage));
+//    PrintMatrix(D, "D" + to_string(stage));
   }
 
   Matrix<T> P = I;
@@ -369,15 +395,6 @@ Matrix<T> Solver<T, Func>::GetReversed(Matrix<T> A) {
   auto ans = SolveSystem(A, getIdentityMatrix<T>(A.size()), SolverMethod::DO_NOT_TOUCH);
   assert(mult(A, ans) == getIdentityMatrix<T>(A.size()));
   return ans;
-}
-
-template<typename T, class Func>
-Matrix<T> Solver<T, Func>::GetReversedAndDebugUsingDLUP(Matrix<T> A) {
-  Matrix<T> L, D, U, P;
-  tie(D, L, U, P) = DLUP_Decomposition(A);
-  auto smth = mult(mult((D), getIdentityMatrix<T>(A.size())), (P));
-  Matrix<T> Y = SolveSystem(L, smth);
-  return SolveSystem(U, Y);
 }
 
 template<typename T, class Func>
@@ -413,7 +430,7 @@ vector<T> Solver<T, Func>::SolveThreeDiagonalSystem(vector<ThreeDiagonal<T>> A, 
   return vector<T>();
 }
 template<typename T, class Func>
-void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) const {
+void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) {
   int n = A.size();
   cout << A[0].b << " " << A[0].c << " ";
   for (int i = 0; i < n - 2; ++i) {
@@ -438,4 +455,35 @@ void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) cons
     cout << T(0) << " ";
   }
   cout << A.back().a << " " << A.back().b << endl;
+}
+
+template<typename T, class Func>
+Matrix<T> Solver<T, Func>::SolveSystemUsingLDLt(Matrix<T> A, Matrix<T> B) {
+  return Matrix<T>();
+}
+
+template<typename T, class Func>
+Matrix<T> Solver<T, Func>::Transpose(Matrix<T> A) {
+  assert(A.size() == A[0].size());
+  for (int i = 0; i < A.size(); ++i) {
+    for (int j = 0; j < i; ++j) {
+      swap(A[i][j], A[j][i]);
+    }
+  }
+  return A;
+}
+template<typename T, class Func>
+vector<T> Solver<T, Func>::SolveLinearSystemUsingDLUP(Matrix<T> A, vector<T> B) {
+
+  Matrix<T> D, L, U, P;
+  tie(D, L, U, P) = DLUP_Decomposition(A, SolverMethod::BEST_IN_COLUMN);
+  PrintMatrix(D, "D");
+  PrintMatrix(L, "L");
+  PrintMatrix(U, "U");
+  PrintMatrix(P, "P");
+  if (!compareMatrixOfDouble(A, mult(mult(GetReversed(D), L), mult(U, GetReversed(P))))) {
+    cerr << "jOpA" << endl;
+    assert(false);
+  }
+  return {};
 }
