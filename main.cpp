@@ -24,6 +24,7 @@ using Matrix = vector<vector<T>>;
 #include "Solver.cpp"
 #include "tests.cpp"
 #include "profile.h"
+#include "hwsolver.h"
 #include "cma_lab_tasks.cpp"
 
 int main() {
@@ -39,7 +40,8 @@ int main() {
 //  vector<Fraction> b = {5, 6, 12, 10, 6};
 //  solver->SolveThreeDiagonalSystem(a, b);
 
+  SolveTask1();
   // SolveTask2();
-  SolveTask3();
+  // SolveTask3();
   return 0;
 }

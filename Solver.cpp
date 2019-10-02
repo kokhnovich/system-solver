@@ -401,9 +401,12 @@ template<typename T, class Func>
 tuple<Matrix<T>, vector<T>> Solver<T, Func>::LDL_Decomposition(Matrix<T> A) {
   vector<T> D(A.size(), T(1));
   for (int now = 0; now < A.size(); ++now) {
-    Assert(A[now][now] != 0, "TRUBA\n");
+    // Assert(A[now][now] != 0, "TRUBA\n");
+    if (A[now][now] == 0) {
+      cerr << "TRUBA found" << endl;
+    }
     if (A[now][now] < T(0)) {
-      for(int col = now; col < A.size(); ++col) {
+      for (int col = now; col < A.size(); ++col) {
         A[now][col] *= T(-1);
       }
       D[now] = T(-1);
@@ -413,11 +416,12 @@ tuple<Matrix<T>, vector<T>> Solver<T, Func>::LDL_Decomposition(Matrix<T> A) {
     for (int col = now; col < A.size(); ++col) {
       A[now][col] /= k;
     }
-    for(int row = now + 1; row < A.size(); ++row) {
+    for (int row = now + 1; row < A.size(); ++row) {
       sub_row(A, row, now, A[row][now] / A[now][now]);
     }
 
   }
+  A = Transpose(A);
   return tie(A, D);
 }
 
@@ -465,23 +469,43 @@ void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) {
 }
 
 template<typename T, class Func>
-Matrix<T> Solver<T, Func>::SolveSystemUsingLDLt(Matrix<T> A, Matrix<T> B) {
+vector<T> Solver<T, Func>::SolveLinearSystemUsingLDLt(Matrix<T> A, vector<T> B) {
 
   Matrix<T> L(1, vector<T>(1, 0));
   vector<T> D(1, 0);
   tie(L, D) = LDL_Decomposition(A);
-  PrintMatrix(D, "D");
-  PrintMatrix(L, "L");
-  PrintMatrix(Transpose(L), "L^T");
-  // PrintMatrix(mult(L, Transpose(L)), "L /cdot L^T");
-  PrintMatrix(mult(Transpose(L), L), "L^T /cdot L");
+  // L * D * L^T == A
 
-  Matrix<T> DD(A.size(), vector<T>(A.size(), 0));
-  for(int i = 0; i < A.size(); ++i) {
-    DD[i][i] = D[i];
+  // PrintMatrix(D, "D");
+  // PrintMatrix(L, "L");
+  // PrintMatrix(Transpose(L), "L^T");
+  // PrintMatrix(mult(L, Transpose(L)), "L /cdot L^T");
+  // Matrix<T> DD(A.size(), vector<T>(A.size(), 0));
+  // for (int i = 0; i < A.size(); ++i) {
+  //   DD[i][i] = D[i];
+  // }
+  // PrintMatrix(mult(mult(L, DD), Transpose(L)), "LDLt");
+
+  // L D Lt X = B
+  // L y = b
+  // (D Lt) x = y
+
+  int n = A.size();
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < i; ++j) {
+      B[i] -= L[i][j] * D[j] * B[j];
+    }
+    B[i] /= L[i][i] * D[i];
   }
-  PrintMatrix(mult(mult(Transpose(L), DD), L), "LDLt");
-  return A;
+
+  for (int i = n - 1; i >= 0; --i) {
+    for (int j = i + 1; j < n; ++j) {
+      B[i] -= L[j][i] * B[j];
+    }
+    B[i] /= L[i][i];
+  }
+  return B;
 }
 
 template<typename T, class Func>

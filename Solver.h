@@ -61,7 +61,7 @@ class Solver {
   Matrix<T> SolveSystemUsingLU(Matrix<T> A,
                                Matrix<T> B,
                                const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
-  Matrix<T> SolveSystemUsingLDLt(Matrix<T> A, Matrix<T> B);
+  vector<T> SolveLinearSystemUsingLDLt(Matrix<T> A, vector<T> B);
   Matrix<T> SolveSystem(Matrix<T> A,
                         Matrix<T> B,
                         const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
@@ -82,7 +82,7 @@ class Solver {
 
   vector<T> SolveThreeDiagonalSystem(vector<ThreeDiagonal<T>> A, vector<T> b);
 
- private:
+ protected:
 
   void SolveStage(Matrix<T>& A, int stage, const SolverMethod& method_, vector<int>& ans_order);
 
@@ -93,13 +93,13 @@ class Solver {
   int best_in_the_col(const Matrix<T>& A, int col);
   pair<int, int> best_in_the_sqr(const Matrix<T>& A, int start_i, int start_j);
 
-  void swap_rows(Matrix<T>& A, int row1, int row2);
-  void swap_columns(Matrix<T>& A, int col1, int col2, vector<int>& ans_order);
-  void swap_columns(Matrix<T>& A, int col1, int col2);
+  inline void swap_rows(Matrix<T>& A, int row1, int row2);
+  inline void swap_columns(Matrix<T>& A, int col1, int col2, vector<int>& ans_order);
+  inline void swap_columns(Matrix<T>& A, int col1, int col2);
 
-  void normalize_row(Matrix<T>& A, int row);
-  void substract_str(Matrix<T>& A, int row, int stage);
-  void sub_row(Matrix<T>& A, int row1, int row2, T koef); // row1 -= row2 * koef
+  inline void normalize_row(Matrix<T>& A, int row);
+  inline void substract_str(Matrix<T>& A, int row, int stage);
+  inline void sub_row(Matrix<T>& A, int row1, int row2, T koef); // row1 -= row2 * koef
   Matrix<T>& LU_Step(Matrix<T>& B, const Matrix<T>& L, const Matrix<T>& U);
 };
 

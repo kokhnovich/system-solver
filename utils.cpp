@@ -30,7 +30,7 @@ Matrix<T> generateRandomSymmetricMatrix(int size_, int min_elem = -100, int max_
   return a;
 }
 
-double EPS = 1e-5;
+double EPS = 1e-3;
 
 inline bool compareDouble(double d1, double d2) {
   return abs(d1 - d2) <= EPS;

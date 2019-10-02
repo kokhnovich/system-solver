@@ -18,7 +18,7 @@ class LogDuration {
     std::ostringstream os;
     os << message
        << std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()
-       << " ms" << std::endl;
+       << " ms";
     std::cerr << os.str() << std::endl;
   }
  private:

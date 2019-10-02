@@ -2,8 +2,66 @@
 // Created by user on 25.09.19.
 //
 
-void SolveTask1() {
+/*
+ * task1
+ * task2
+ * task3... Done!
+ * task4
+ * task5
+ */
 
+void SolveTask1() {
+  auto solver = new HW_Solver<double>();
+  Matrix<double> A1 = {
+      {-3, 1, 0, 0},
+      {0, 2, 5, 0},
+      {-3, -4, -5, -2},
+      {3, -2, 1, -1}
+  };
+
+  Matrix<double> A2 = {
+      {-5, -5, 0, 0, 0, 0, 0, 0, 0},
+      {3, 3, 0, 0, 0, 0, 0, 0, 0},
+      {-5, 0, -4, 5, 0, 0, 0, 0, 0},
+      {-4, 2, -5, 4, 0, 0, 0, 0, 0},
+      {-3, -4, 1, 4, -4, 3, 0, 0, 0},
+      {-5, 3, 4, 2, 4, -2, 2, 0, 0},
+      {4, 0, -1, -1, 3, 1, 6, -5, 0},
+      {0, 2, 2, -5, -2, 0, 1, 3, -4},
+      {-5, 3, -5, 3, 1, 0, -3, 1, -4}
+  };
+
+//  try {
+//    auto revA2 = solver->task2_gauss(A2);
+//    PrintMatrix(revA2);
+//  } catch (exception& e) {
+//    cerr << e.what() << endl;
+//  }
+
+//  auto revA1 = solver->task2_gauss(A1);
+//  if (!compareMatrixOfDouble(mult(A1, revA1), getIdentityMatrix<double>(A1.size()))) {
+//    PrintMatrix(A1, "A1 original");
+//    PrintMatrix(mult(A1, revA1), "A * A^{-1} gmo");
+//  }
+
+  vector<int> times;
+  for (int cnt = 1800; cnt <= 2300; cnt += 200) {
+    Matrix<double> A(solver->task2_random_strange_matrix(cnt));
+    Matrix<double> B(getIdentityMatrix<double>(cnt));
+    auto timer = new LogDuration("For size=" + to_string(cnt) + " is ");
+    Matrix<double> ans = solver->task2_gauss(A);
+    times.push_back(timer->getTime());
+    delete timer;
+//    if (!compareMatrixOfDouble(mult(A, ans), B)) {
+//      // PrintPartOfMatrix(mult(A, ans), 10, "A * A^{-1}");
+//      // PrintPartOfMatrix(ans, 10, "ans");
+//      cerr << "wroong" << endl;
+//    }
+  }
+
+  for (const auto& time : times) {
+    cout << time << " ";
+  }
 }
 
 void SolveTask2() {
@@ -46,26 +104,27 @@ void SolveTask3() {
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(-5, 5);
   std::mt19937_64 generator(std::random_device{}());
 
-  Matrix<double> A(generateRandomSymmetricMatrix<double>(10, 4, 14));
-  vector<double> x(10, 1.);
-  vector<double> B(generateAnsMatrix(A, x));
-  solver->SolveSystemUsingLDLt(A, make2Dfrom1D(B));
-  PrintMatrix(A, "A");
-  return;
+//  Matrix<double> A(generateRandomSymmetricMatrix<double>(10, 4, 14));
+//  vector<double> x(10, 1.);
+//  vector<double> B(generateAnsMatrix(A, x));
+//  PrintMatrix(solver->SolveLinearSystemUsingLDLt(A, B), "ldlt x = b");
+//  PrintMatrix(solver->SolveLinearSystemUsingDLUP(A, B), "dlup x = b");
+//  PrintMatrix(A, "A");
+//  return;
 
   vector<int> times;
   for (int cnt = 100; cnt <= 2000; cnt += 100) {
-    Matrix<double> A(generateRandomSymmetricMatrix<double>(cnt, 0, 10));
+    Matrix<double> A(generateRandomSymmetricMatrix<double>(cnt, 2, 10));
     // PrintMatrix(A, "A");
     vector<double> x(cnt, 1.);
     vector<double> B(generateAnsMatrix(A, x));
     auto timer = new LogDuration("For size=" + to_string(cnt) + " is ");
-    auto ans = solver->SolveSystemUsingLU(A, make2Dfrom1D(B), SolverMethod::BEST_IN_ROW);
+    auto ans = solver->SolveLinearSystemUsingLDLt(A, B);
     times.push_back(timer->getTime());
     delete timer;
-    if (!compareVectorOfDouble(x, make1Dfrom2D(ans))) {
+    if (!compareVectorOfDouble(x, ans)) {
       PrintMatrix(x, "x");
-      PrintMatrix(make1Dfrom2D(ans), "ans");
+      PrintMatrix(ans, "ans");
     }
   }
   for (auto& i : times) {
