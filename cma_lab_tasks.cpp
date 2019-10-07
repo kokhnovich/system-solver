@@ -12,6 +12,7 @@
 
 void SolveTask1() {
   auto solver = new HW_Solver<double>();
+
   Matrix<double> A1 = {
       {-3, 1, 0, 0},
       {0, 2, 5, 0},
@@ -30,26 +31,36 @@ void SolveTask1() {
       {0, 2, 2, -5, -2, 0, 1, 3, -4},
       {-5, 3, -5, 3, 1, 0, -3, 1, -4}
   };
+  /*
+  try {
+    auto revA2 = solver->task2_gauss(A2);
+    PrintMatrix(revA2);
+  } catch (exception& e) {
+    cerr << e.what() << endl;
+  }
 
-//  try {
-//    auto revA2 = solver->task2_gauss(A2);
-//    PrintMatrix(revA2);
-//  } catch (exception& e) {
-//    cerr << e.what() << endl;
-//  }
-
-//  auto revA1 = solver->task2_gauss(A1);
-//  if (!compareMatrixOfDouble(mult(A1, revA1), getIdentityMatrix<double>(A1.size()))) {
-//    PrintMatrix(A1, "A1 original");
-//    PrintMatrix(mult(A1, revA1), "A * A^{-1} gmo");
-//  }
-
+  auto revA1 = solver->task1_gauss(A1);
+  if (!compareMatrixOfDouble(mult(A1, revA1), getIdentityMatrix<double>(A1.size()))) {
+    PrintMatrix(A1, "A1 original");
+    PrintMatrix(mult(A1, revA1), "A * A^{-1} gmo");
+  } else {
+    cout << "OK" << endl;
+  }
+   */
   vector<int> times;
-  for (int cnt = 1800; cnt <= 2300; cnt += 200) {
-    Matrix<double> A(solver->task2_random_strange_matrix(cnt));
+  for (int cnt = 1000; cnt <= 1000; cnt += 200) {
+    Matrix<double> A(solver->task1_random_strange_matrix(cnt));
+    // PrintMatrix(A, "A");
     Matrix<double> B(getIdentityMatrix<double>(cnt));
     auto timer = new LogDuration("For size=" + to_string(cnt) + " is ");
-    Matrix<double> ans = solver->task2_gauss(A);
+    try {
+      Matrix<double> ans = solver->task1_gauss(A);
+    } catch (std::exception& e) {
+      cerr << e.what() << endl;
+      continue;
+    }
+    // PrintMatrix(ans);
+    // PrintMatrix(mult(A, ans));
     times.push_back(timer->getTime());
     delete timer;
 //    if (!compareMatrixOfDouble(mult(A, ans), B)) {

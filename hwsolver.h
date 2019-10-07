@@ -11,7 +11,7 @@ template<typename T>
 
 class HW_Solver : public Solver<T> {
  public:
-  Matrix<T> task2_gauss(Matrix<T> A) {
+  Matrix<T> task1_crazy_gauss(Matrix<T> A) {
     int n = A.size();
     Matrix < T > B(getIdentityMatrix<T>(n));
     for (int i = n - 1; i >= 1; --i) {
@@ -22,18 +22,22 @@ class HW_Solver : public Solver<T> {
       for (int j = 0; j <= i; ++j) {
         A[i - 1][j] -= A[i][j] * k;
       }
-      Solver<T>::sub_row(B, i - 1, i, k);
+      // Solver<T>::sub_row(B, i - 1, i, k);
+      for (int j = 0; j < n; ++j) {
+        B[i - 1][j] -= B[i][j] * k;
+      }
     }
     // PrintMatrix(A, "A");
     // PrintMatrix(B, "B");
-    for (int i = 0; i < A.size(); ++i) {
+    for (int i = 0; i < n; ++i) {
       for (int j = 0; j < i; ++j) {
-        Solver<T>::sub_row(B, i, j, A[i][j]);
+        // Solver<T>::sub_row(B, i, j, A[i][j]);
+        for (int k = 0; k < n; ++k) {
+          B[i][k] -= B[j][k] * A[i][i];
+          B[i][k] /= A[i][i];
+        }
       }
       if (compareDouble(0, A[i][i])) throw logic_error("divide by zero");
-      for (int j = 0; j < B[i].size(); ++j) {
-        B[i][j] /= A[i][i];
-      }
       // A[i][i] = 1;
       // PrintMatrix(A, "A stage " + to_string(i));
       // PrintMatrix(B, "B stage " + to_string(i));
@@ -41,8 +45,49 @@ class HW_Solver : public Solver<T> {
     return B;
   }
 
-  Matrix<T> task2_random_strange_matrix(int n) {
-    std::uniform_int_distribution<std::mt19937_64::result_type> udist(10050, 1005000);
+  void task1_gauss_sub_row(Matrix<T>& A, Matrix<T>& B, int& i, int& n, int& start_j, int& end_j) {
+    for (int j = start_j; j < end_j; ++j) {
+      if (A[i][i] == 0) throw logic_error("zero");
+      T koef = A[j][i] / A[i][i];
+      int mx = n;
+      for (int k = 0; k < i; ++k) {
+        B[j][k] -= B[i][k] * koef;
+      }
+      for (int k = i; k < mx; ++k) {
+        A[j][k] -= A[i][k] * koef;
+        B[j][k] -= B[i][k] * koef;
+      }
+    }
+  }
+
+  Matrix<T> task1_gauss(Matrix<T>& A) {
+    int n = A.size();
+    Matrix < T > B(getIdentityMatrix<T>(n));
+    for (int i = 0; i < n; ++i) {
+      int mid = (i + n) / 2;
+      int start_j = i + 1;
+      auto handle = async(std::launch::async,
+                          // std::bind(&HW_Solver::task1_gauss_sub_row, this, _1, _2, _3, _4, _5, _6),
+                          &HW_Solver<T>::task1_gauss_sub_row, this,
+                          A, B, i, n, start_j, mid);
+      task1_gauss_sub_row(A, B, i, n, start_j, n);
+      handle.wait();
+    }
+    // PrintMatrix(A, "A end");
+    for (int k = 0; k < n; ++k) {
+      B.back()[k] /= A.back().back();
+    }
+    for (int i = n - 2; i >= 0; --i) {
+      for (int k = 0; k < n; ++k) {
+        B[i][k] -= B[i + 1][k] * A[i][i + 1];
+        B[i][k] /= A[i][i];
+      }
+    }
+    return B;
+  }
+
+  Matrix<T> task1_random_strange_matrix(int n) {
+    std::uniform_int_distribution<std::mt19937_64::result_type> udist(10, 1000);
     std::mt19937_64 generator(std::random_device{}());
     Matrix < T > ans(n, vector<T>(n));
     for (int i = 0; i < n; ++i) {
