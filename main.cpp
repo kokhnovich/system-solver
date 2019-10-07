@@ -1,15 +1,19 @@
-#include <iostream>
-#include <vector>
-#include <random>
-#include <cassert>
-#include "algorithm"
-#include <iomanip>
-#include <chrono>
-#include <future>
-#include <functional>
+//#include <iostream>
+//#include <vector>
+//#include <random>
+//#include <cassert>
+//#include "algorithm"
+//#include <iomanip>
+//#include <chrono>
+//#include <future>
+//#include <functional>
+#include <bits/stdc++.h>
 
 // #pragma comment(linker, "/stack:200000000")
-#pragma GCC optimize("O3")
+// #pragma GCC optimize("O3")
+// #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
+
+#pragma GCC optimize("Ofast")
 #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
 
 using namespace std;

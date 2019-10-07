@@ -5,10 +5,8 @@
 #ifndef SYSTEM_SOLVER__HWSOLVER_H_
 #define SYSTEM_SOLVER__HWSOLVER_H_
 
-// #include "Solver.cpp"
 
 template<typename T>
-
 class HW_Solver : public Solver<T> {
  public:
   Matrix<T> task1_crazy_gauss(Matrix<T> A) {
@@ -45,11 +43,11 @@ class HW_Solver : public Solver<T> {
     return B;
   }
 
-  void task1_gauss_sub_row(Matrix<T>& A, Matrix<T>& B, int& i, int& n, int& start_j, int& end_j) {
+  bool task1_gauss_sub_row(Matrix<T>& A, Matrix<T>& B, int i, int n, int start_j, int end_j) {
     for (int j = start_j; j < end_j; ++j) {
       if (A[i][i] == 0) throw logic_error("zero");
       T koef = A[j][i] / A[i][i];
-      int mx = n;
+      int mx = min(n, i + 2);
       for (int k = 0; k < i; ++k) {
         B[j][k] -= B[i][k] * koef;
       }
@@ -58,25 +56,34 @@ class HW_Solver : public Solver<T> {
         B[j][k] -= B[i][k] * koef;
       }
     }
+    return true;
   }
 
   Matrix<T> task1_gauss(Matrix<T>& A) {
     int n = A.size();
     Matrix < T > B(getIdentityMatrix<T>(n));
     for (int i = 0; i < n; ++i) {
-      int mid = (i + n) / 2;
-      int start_j = i + 1;
-      auto handle = async(std::launch::async,
-                          // std::bind(&HW_Solver::task1_gauss_sub_row, this, _1, _2, _3, _4, _5, _6),
-                          &HW_Solver<T>::task1_gauss_sub_row, this,
-                          A, B, i, n, start_j, mid);
-      task1_gauss_sub_row(A, B, i, n, start_j, n);
-      handle.wait();
+
+      int left = i + 1, right = n;
+      int mid = (left + right) / 2;
+
+      std::future<bool> handleFirst = async(launch::async, &HW_Solver::task1_gauss_sub_row,
+                                            this, ref(A), ref(B), i, n, left, mid);
+      std::future<bool> handleSecond = async(launch::async, &HW_Solver::task1_gauss_sub_row,
+                                             this, ref(A), ref(B), i, n, mid, right);
+      //task1_gauss_sub_row(A, B, i, n, mid, right);
+      handleFirst.get();
+      handleSecond.get();
     }
+
     // PrintMatrix(A, "A end");
+
     for (int k = 0; k < n; ++k) {
       B.back()[k] /= A.back().back();
     }
+
+    // PrintMatrix(B, "B end");
+
     for (int i = n - 2; i >= 0; --i) {
       for (int k = 0; k < n; ++k) {
         B[i][k] -= B[i + 1][k] * A[i][i + 1];

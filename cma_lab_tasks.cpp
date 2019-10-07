@@ -10,6 +10,7 @@
  * task5
  */
 
+
 void SolveTask1() {
   auto solver = new HW_Solver<double>();
 
@@ -31,14 +32,8 @@ void SolveTask1() {
       {0, 2, 2, -5, -2, 0, 1, 3, -4},
       {-5, 3, -5, 3, 1, 0, -3, 1, -4}
   };
-  /*
-  try {
-    auto revA2 = solver->task2_gauss(A2);
-    PrintMatrix(revA2);
-  } catch (exception& e) {
-    cerr << e.what() << endl;
-  }
 
+  /*
   auto revA1 = solver->task1_gauss(A1);
   if (!compareMatrixOfDouble(mult(A1, revA1), getIdentityMatrix<double>(A1.size()))) {
     PrintMatrix(A1, "A1 original");
@@ -46,9 +41,17 @@ void SolveTask1() {
   } else {
     cout << "OK" << endl;
   }
-   */
+
+  try {
+    auto revA2 = solver->task2_gauss(A2);
+    PrintMatrix(revA2);
+  } catch (exception& e) {
+    cerr << e.what() << endl;
+  }
+  */
+
   vector<int> times;
-  for (int cnt = 1000; cnt <= 1000; cnt += 200) {
+  for (int cnt = 2000; cnt <= 4000; cnt += 500) {
     Matrix<double> A(solver->task1_random_strange_matrix(cnt));
     // PrintMatrix(A, "A");
     Matrix<double> B(getIdentityMatrix<double>(cnt));
@@ -141,4 +144,8 @@ void SolveTask3() {
   for (auto& i : times) {
     cout << i << " ";
   }
+}
+
+void SolveTask4() {
+
 }
