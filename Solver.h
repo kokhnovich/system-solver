@@ -47,10 +47,7 @@ vector<T> operator*(T koef, const vector<T>& one) {
  *
 **/
 
-template<typename T>
-struct ThreeDiagonal {
-  T a, b, c;
-};
+
 
 template<typename T, class Func=greater_using_abs<T>>
 class Solver {
@@ -71,7 +68,7 @@ class Solver {
 
   static void Print(const Matrix<T>& A, const vector<int>& ans_order);
   static void Print(const Matrix<T>& A);
-  static void PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A);
+  static void PrintThreeDiagonal(const Matrix<T>& A);
 
   /// L D U P, such as A = D^{-1} L U P^{-1}
   tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> DLUP_Step(Matrix<T>& A, int stage);
@@ -80,7 +77,7 @@ class Solver {
 
   tuple<Matrix<T>, vector<T>> LDL_Decomposition(Matrix<T> A);
 
-  vector<T> SolveThreeDiagonalSystem(vector<ThreeDiagonal<T>> A, vector<T> b);
+  vector<T> SolveThreeDiagonalSystem(Matrix<T> A, vector<T> b);
 
  protected:
 

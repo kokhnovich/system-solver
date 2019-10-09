@@ -43,9 +43,9 @@ class HW_Solver : public Solver<T> {
     return B;
   }
 
-  bool task1_gauss_sub_row(Matrix<T>& A, Matrix<T>& B, int i, int n, int start_j, int end_j) {
+  void task1_gauss_sub_row(Matrix<T>& A, Matrix<T>& B, int i, int n, int start_j, int end_j) {
     for (int j = start_j; j < end_j; ++j) {
-      if (A[i][i] == 0) throw logic_error("zero");
+      if (A[i][i] == 0) throw logic_error("divide by zero");
       T koef = A[j][i] / A[i][i];
       int mx = min(n, i + 2);
       for (int k = 0; k < i; ++k) {
@@ -56,7 +56,6 @@ class HW_Solver : public Solver<T> {
         B[j][k] -= B[i][k] * koef;
       }
     }
-    return true;
   }
 
   Matrix<T> task1_gauss(Matrix<T>& A) {
@@ -67,9 +66,9 @@ class HW_Solver : public Solver<T> {
       int left = i + 1, right = n;
       int mid = (left + right) / 2;
 
-      std::future<bool> handleFirst = async(launch::async, &HW_Solver::task1_gauss_sub_row,
+      std::future<void> handleFirst = async(launch::async, &HW_Solver::task1_gauss_sub_row,
                                             this, ref(A), ref(B), i, n, left, mid);
-      std::future<bool> handleSecond = async(launch::async, &HW_Solver::task1_gauss_sub_row,
+      std::future<void> handleSecond = async(launch::async, &HW_Solver::task1_gauss_sub_row,
                                              this, ref(A), ref(B), i, n, mid, right);
       //task1_gauss_sub_row(A, B, i, n, mid, right);
       handleFirst.get();

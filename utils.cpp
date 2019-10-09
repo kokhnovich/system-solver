@@ -13,6 +13,19 @@ Matrix<T> mult(Matrix<T> A, Matrix<T> B) {
   return R;
 }
 
+template <typename T>
+Matrix<T> generateThreeDiagonal(int size_, int min_elem = -100, int max_elem = 100) {
+  std::uniform_int_distribution<std::mt19937_64::result_type> udist(min_elem, max_elem);
+  std::mt19937_64 generator(std::random_device{}());
+  Matrix<T> a(size_, vector<T>(3));
+  for(auto&  i : a) {
+    for(auto& j : i) {
+      j = udist(generator);
+    }
+  }
+  return a;
+}
+
 template<typename T>
 Matrix<T> generateRandomSymmetricMatrix(int size_, int min_elem = -100, int max_elem = 100) {
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(min_elem, max_elem);

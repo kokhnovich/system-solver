@@ -426,24 +426,33 @@ tuple<Matrix<T>, vector<T>> Solver<T, Func>::LDL_Decomposition(Matrix<T> A) {
 }
 
 template<typename T, class Func>
-vector<T> Solver<T, Func>::SolveThreeDiagonalSystem(vector<ThreeDiagonal<T>> A, vector<T> b) {
+vector<T> Solver<T, Func>::SolveThreeDiagonalSystem(Matrix<T> A, vector<T> b) {
   for (int i = 1; i < A.size(); ++i) {
-    T k = A[i].a / A[i - 1].b;
-    A[i].a -= k * A[i - 1].b;
-    A[i].b -= k * A[i - 1].c;
+    if (A[i - 1][1] == 0) throw std::logic_error("divide by zero");
+    T k = A[i][0] / A[i - 1][1];
+
+    A[i][0] -= k * A[i - 1][1];
+    A[i][1] -= k * A[i - 1][2];
     b[i] -= k * b[i - 1];
   }
-//  auto bb = b.begin();
-//  for (const auto& i : A) {
-//    cout << i.a << " " << i.b << " " << i.c << " : " << *(bb++) << endl;
-//  }
+
   PrintThreeDiagonal(A);
-  return vector<T>();
+  PrintMatrix(b, "b");
+
+  b.back() /= A.back()[1];
+  A.back()[1] = 1;
+  for(int i = A.size() - 2; i >= 0; --i) {
+    b[i] -= A[i][2] * b[i + 1];
+    b[i] /= A[i][1];
+    A[i][1] = 1;
+  }
+  PrintThreeDiagonal(A);
+  return b;
 }
 template<typename T, class Func>
-void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) {
+void Solver<T, Func>::PrintThreeDiagonal(const Matrix<T>& A) {
   int n = A.size();
-  cout << A[0].b << " " << A[0].c << " ";
+  cout << A[0][1] << " " << A[0][2] << " ";
   for (int i = 0; i < n - 2; ++i) {
     cout << T(0) << " ";
   }
@@ -453,9 +462,9 @@ void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) {
     for (int j = 0; j < k; ++j) {
       cout << T(0) << " ";
     }
-    cout << A[i].a << " ";
-    cout << A[i].b << " ";
-    cout << A[i].c << " ";
+    cout << A[i][0] << " ";
+    cout << A[i][1] << " ";
+    cout << A[i][2] << " ";
     for (int j = 0; j < n - 3 - k; ++j) {
       cout << T(0) << " ";
     }
@@ -465,14 +474,14 @@ void Solver<T, Func>::PrintThreeDiagonal(const vector<ThreeDiagonal<T>>& A) {
   for (int j = 0; j < n - 2; ++j) {
     cout << T(0) << " ";
   }
-  cout << A.back().a << " " << A.back().b << endl;
+  cout << A.back()[0] << " " << A.back()[1] << endl;
 }
 
 template<typename T, class Func>
 vector<T> Solver<T, Func>::SolveLinearSystemUsingLDLt(Matrix<T> A, vector<T> B) {
 
-  Matrix<T> L(1, vector<T>(1, 0));
-  vector<T> D(1, 0);
+  Matrix<T> L;
+  vector<T> D;
   tie(L, D) = LDL_Decomposition(A);
   // L * D * L^T == A
 
