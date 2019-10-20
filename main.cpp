@@ -28,7 +28,7 @@ using Matrix = vector<vector<T>>;
 // @TODO norm tests
 // @TODO optimize using profiler
 // @TODO class LatexWriter
-
+// @TODO iteration methods
 
 #include "utils.cpp"
 #include "Fraction.h"
@@ -37,8 +37,10 @@ using Matrix = vector<vector<T>>;
 #include "Solver.cpp"
 #include "tests.cpp"
 #include "profile.h"
-#include "hwsolver.h"
-#include "cma_lab_tasks.cpp"
+// #include "hwsolver.h"
+// #include "cma_lab_tasks.cpp"
+//#include "LatexWriter.h"
+#include "IterationMethods/IterationMethods.h"
 
 int main() {
 //  PrintMatrix(generateRandomSymmetricMatrix<Fraction>(10), "random sym matrix");
@@ -53,9 +55,25 @@ int main() {
 //  vector<Fraction> b = {5, 6, 12, 10, 6};
 //  solver->SolveThreeDiagonalSystem(a, b);
 
+  // LatexWriter latex_writer("latex.tex");
+  // latex_writer.Testing();
+
   // SolveTask1();
   // SolveTask2();
   // SolveTask3();
-  SolveTask4();
+  // SolveTask4();
+
+  IterationMethods<double> solver;
+
+  Matrix<double> A = {{26, 4, -4},
+                      {-3, 27, 3},
+                      {2, -2, 29}};
+
+  Matrix<double> x = {{1}, {-2}, {1}};
+
+  auto b = mult(A, x);
+  PrintMatrix(b, "b");
+  PrintMatrix(solver.RelaxationMethod(A, make1Dfrom2D(b), 0.5));
+
   return 0;
 }

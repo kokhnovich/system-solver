@@ -436,8 +436,8 @@ vector<T> Solver<T, Func>::SolveThreeDiagonalSystem(Matrix<T> A, vector<T> b) {
     b[i] -= k * b[i - 1];
   }
 
-  PrintThreeDiagonal(A);
-  PrintMatrix(b, "b");
+  // PrintThreeDiagonal(A);
+  // PrintMatrix(b, "b");
 
   b.back() /= A.back()[1];
   A.back()[1] = 1;

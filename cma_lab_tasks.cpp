@@ -147,6 +147,10 @@ void SolveTask3() {
 }
 
 void SolveTask4() {
+  Matrix<double> A_1 = {
+
+  };
+
   Matrix<double> A_2 = {
       {0, 4, -3},
       {4, -6, 4},
