@@ -81,6 +81,10 @@ class Fraction {
     *this = *this - otherFraction;
     return *this;
   }
+  Fraction operator*=(const Fraction& otherFraction) {
+    *this = *this * otherFraction;
+    return *this;
+  }
   Fraction operator/=(const Fraction& otherFraction) {
     *this = *this / otherFraction;
     return *this;
