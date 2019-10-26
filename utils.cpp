@@ -13,13 +13,13 @@ Matrix<T> mult(Matrix<T> A, Matrix<T> B) {
   return R;
 }
 
-template <typename T>
+template<typename T>
 Matrix<T> generateThreeDiagonal(int size_, int min_elem = -100, int max_elem = 100) {
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(min_elem, max_elem);
   std::mt19937_64 generator(std::random_device{}());
   Matrix<T> a(size_, vector<T>(3));
-  for(auto&  i : a) {
-    for(auto& j : i) {
+  for (auto& i : a) {
+    for (auto& j : i) {
       j = udist(generator);
     }
   }
@@ -81,8 +81,6 @@ vector<T> generateAnsMatrix(const Matrix<T>& A, const vector<T>& x) {
   return ans;
 }
 
-
-
 /// Nx1 == true  <=> ans.size() == n && ans[i].size() == 1 \forall i
 /// Nx1 == false <=> ans.size() == 1 && ans[i].size() == n \forall i
 template<typename T>
@@ -119,12 +117,12 @@ vector<T> make1Dfrom2D(const Matrix<T>& a) {
   }
 }
 
-template <typename T>
+template<typename T>
 vector<T> make1Dfrom2DForOrderMatrixes(const Matrix<T>& a) {
   vector<T> ans(a.size());
-  for(int i = 0; i < a.size(); ++i) {
+  for (int i = 0; i < a.size(); ++i) {
     bool ok = false;
-    for(int j = 0; j < a.size(); ++j) {
+    for (int j = 0; j < a.size(); ++j) {
       if (a[i][j]) {
         ans[i] = j;
         ok = true;
@@ -149,6 +147,14 @@ Matrix<T> getHWMatrix(int n) {
           {-n - 1, -(n + 1) / 2, (n + 1) / 2, -(n + 2) / 3},
           {-n + 1, (n + 1) / 2, -(n + 2) / 3, n - 1},
           {n / 3, -1, n, -n}};
+}
+
+template<class T>
+Matrix<T> getNewHWMatrix(int n = 12) {
+  Matrix<T> m = {{2 - n, 0, n - 1},
+                 {n - 1, 1, 1 - n},
+                 {-2 * (n - 1), 0, 2 * n - 1}};
+  return m;
 }
 
 template<typename T>

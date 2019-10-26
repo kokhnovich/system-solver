@@ -37,10 +37,12 @@ using Matrix = vector<vector<T>>;
 #include "Solver.cpp"
 #include "tests.cpp"
 #include "profile.h"
-// #include "hwsolver.h"
-// #include "cma_lab_tasks.cpp"
+//#include "hwsolver.h"
 //#include "LatexWriter.h"
-#include "IterationMethods/IterationMethods.h"
+//#include "IterationMethods/IterationMethods.h"
+//#include "cma_lab_tasks.cpp"
+
+#include "MatrixChanger.h"
 
 int main() {
 //  PrintMatrix(generateRandomSymmetricMatrix<Fraction>(10), "random sym matrix");
@@ -62,18 +64,47 @@ int main() {
   // SolveTask2();
   // SolveTask3();
   // SolveTask4();
+  // SolveTask5();
 
+
+  auto to_solve = getNewHWMatrix<Fraction>(13);
+  MatrixChanger matrix_changer(to_solve);
+  
+  matrix_changer.Print();
+  while (true) {
+    string cmd;
+    cin >> cmd;
+    if (cmd == "swaprow") {
+      int i, j;
+      cin >> i >> j;
+      matrix_changer.SwapRows(i, j);
+    } else if (cmd == "addrow") {
+      int i, j, k;
+      cin >> i >> j >> k;
+      matrix_changer.AddRow(i, j, Fraction(k));
+    } else if (cmd == "multrow") {
+      int i, koef;
+      cin >> i >> koef;
+      matrix_changer.MultRow(i, Fraction(koef));
+    }
+    matrix_changer.Print();
+  }
+
+  /*
   IterationMethods<double> solver;
 
-  Matrix<double> A = {{26, 4, -4},
-                      {-3, 27, 3},
-                      {2, -2, 29}};
+  Matrix<double> A = {{200, 4, -4},
+                      {-3, 150, 3},
+                      {2, -2, 100}};
 
   Matrix<double> x = {{1}, {-2}, {1}};
 
   auto b = mult(A, x);
   PrintMatrix(b, "b");
-  PrintMatrix(solver.RelaxationMethod(A, make1Dfrom2D(b), 0.5));
+  PrintMatrix(solver.YakobyMethod(A, make1Dfrom2D(b)), "yakoby");
+  PrintMatrix(solver.GaussZeydelMethod(A, make1Dfrom2D(b)), "gauss");
+  PrintMatrix(solver.RelaxationMethod(A, make1Dfrom2D(b), 0.9), "relax");
+  */
 
   return 0;
 }
