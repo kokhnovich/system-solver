@@ -8,7 +8,7 @@
 // template<class T>
 class MatrixChanger {
  public:
-  MatrixChanger(const Matrix<Fraction>& a) : a_(a) {}
+  MatrixChanger(const Matrix<double>& a) : a_(a) {}
 
   /*
    * SwapRows initializes SwapColumns and vice versa
@@ -18,13 +18,13 @@ class MatrixChanger {
     a_[i].swap(a_[j]);
     cerr << "swap rows: " + to_string(i) + " " + to_string(j) << endl;
     if (and_cols) {
-      SwapColumns(j, i, false);
+      SwapCols(j, i, false);
     }
   }
 
-  void SwapColumns(int i, int j, bool and_rows = true) {
-    for (int k = 0; k < a_.size(); ++k) {
-      swap(a_[k][i], a_[k][j]);
+  void SwapCols(int i, int j, bool and_rows = true) {
+    for (auto& k : a_) {
+      swap(k[i], k[j]);
     }
     cerr << "swap columns: " + to_string(i) + " " + to_string(j) << endl;
     if (and_rows) {
@@ -32,43 +32,43 @@ class MatrixChanger {
     }
   }
 
-  void MultRow(int i, Fraction koef, bool first = true) {
+  void MultRow(int i, double koef, bool first = true) {
     for (int j = 0; j < a_[i].size(); ++j) {
       a_[i][j] *= koef;
     }
     cerr << "mult row: " << i << " " << koef << endl;
     if (first) {
-      MultCol(i, Fraction(1) / koef, false);
+      MultCol(i, double(1) / koef, false);
     }
   }
 
-  void MultCol(int j, Fraction koef, bool first = true) {
+  void MultCol(int j, double koef, bool first = true) {
     for (int i = 0; i < a_.size(); ++i) {
       a_[i][j] *= koef;
     }
     cerr << "mult col: " << j << " " << koef << endl;
     if (first) {
-      MultRow(j, Fraction(1) / koef, false);
+      MultRow(j, double(1) / koef, false);
     }
   }
 
-  void AddRow(int i, int j, Fraction koef, bool first = true) {
+  void AddRow(int i, int j, double koef, bool first = true) {
     for (int k = 0; k < a_[i].size(); ++k) {
       a_[i][k] += a_[j][k] * koef;
     }
     cerr << "add row: " << i << " " << j << " " << koef << endl;
     if (first) {
-      AddCol(j, i, koef, false);
+      AddCol(j, i, -koef, false);
     }
   }
 
-  void AddCol(int i, int j, Fraction koef, bool first = true) {
+  void AddCol(int i, int j, double koef, bool first = true) {
     for (auto& k : a_) {
       k[i] += k[j] * koef;
     }
     cerr << "add col: " << i << " " << j << " " << koef << endl;
     if (first) {
-      AddRow(j, i, koef, false);
+      AddRow(j, i, -koef, false);
     }
   }
 
@@ -77,7 +77,7 @@ class MatrixChanger {
   }
 
  private:
-  Matrix<Fraction> a_;
+  Matrix<double> a_;
 };
 
 #endif //SYSTEM_SOLVER__MATRIXCHANGER_H_

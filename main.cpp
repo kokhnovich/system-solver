@@ -66,10 +66,29 @@ int main() {
   // SolveTask4();
   // SolveTask5();
 
+//  Matrix<double> test = {{1, 2, 3},
+//                         {4, 5, 6},
+//                         {7, 8, 9}};
+//  auto changer = MatrixChanger(test);
+//
+//  changer.Print();
+//
+//  changer.MultRow(1, 25);
+//  changer.Print();
+//
+//  changer.AddRow(1, 0, 1);
+//
+//  changer.Print();
+//
+//  return 0;
 
-  auto to_solve = getNewHWMatrix<Fraction>(13);
-  MatrixChanger matrix_changer(to_solve);
-  
+  auto to_solve = getNewHWMatrix<double>(13);
+
+  Matrix<double> jopa = {{-11, 12},
+                         {-24, 25}};
+
+  MatrixChanger matrix_changer(jopa);
+
   matrix_changer.Print();
   while (true) {
     string cmd;
@@ -79,13 +98,29 @@ int main() {
       cin >> i >> j;
       matrix_changer.SwapRows(i, j);
     } else if (cmd == "addrow") {
-      int i, j, k;
+      int i, j;
+      double k;
       cin >> i >> j >> k;
-      matrix_changer.AddRow(i, j, Fraction(k));
+      matrix_changer.AddRow(i, j, double(k));
     } else if (cmd == "multrow") {
-      int i, koef;
-      cin >> i >> koef;
-      matrix_changer.MultRow(i, Fraction(koef));
+      int i;
+      double k;
+      cin >> i >> k;
+      matrix_changer.MultRow(i, double(k));
+    } else if (cmd == "swapcol") {
+      int i, j;
+      cin >> i >> j;
+      matrix_changer.SwapCols(i, j);
+    } else if (cmd == "addcol") {
+      int i, j;
+      double k;
+      cin >> i >> j >> k;
+      matrix_changer.AddCol(i, j, double(k));
+    } else if (cmd == "multcol") {
+      int i;
+      double k;
+      cin >> i >> k;
+      matrix_changer.MultCol(i, double(k));
     }
     matrix_changer.Print();
   }
