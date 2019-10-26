@@ -5,7 +5,6 @@
 #ifndef SYSTEM_SOLVER__HWSOLVER_H_
 #define SYSTEM_SOLVER__HWSOLVER_H_
 
-
 template<typename T>
 class HW_Solver : public Solver<T> {
  public:
@@ -102,6 +101,58 @@ class HW_Solver : public Solver<T> {
       }
     }
     return ans;
+  }
+
+  T task5_get_Bij(int i, int j, int n) {
+    if (!(i == 0 && j == 0) && !(i == n - 1 && j == n - 1) && (i == 0 || j == 0 || i == n - 1 || j == n - 1)) {
+      return -1. / n;
+    } else {
+      return 0;
+    }
+  }
+
+  vector<double> task5_relax(int n, double w = 1) {
+    // int iters = 25;
+    double EPS = 1e-10;
+    vector<double> x(n, T(0));
+//    vector<T> x_new = task5_relax_step(x, w);
+//    for(int i = 0; i < n; ++i) {
+//      diff[i] = abs(x[i] - x_new[i]);
+//    }
+    vector<double> diff(n), x_new;
+    double error = 1;
+    PrintMatrix(x, "iter 0");
+    int iter = 1;
+    while (error > EPS) {
+      cout << error << endl;
+      x_new = task5_relax_step(x, w);
+      PrintMatrix(x, "iter " + to_string(iter));
+      PrintMatrix(x_new, "iter " + to_string(iter++));
+      for (int i = 0; i < n; ++i) {
+        diff[i] = abs(x[i] - x_new[i]);
+      }
+      PrintMatrix(diff, "diff");
+      error = *max_element(begin(diff), end(diff));
+      cout << error << endl;
+      x = x_new;
+    }
+    return x;
+  }
+
+  vector<double> task5_relax_step(const vector<double>& x, double w) {
+    int n = x.size();
+    vector<double> new_x(n, 1. / n);
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < i; ++j) {
+        new_x[i] += task5_get_Bij(i, j, n) * new_x[j];
+      }
+      for (int j = i; j < n; ++j) {
+        new_x[i] += task5_get_Bij(i, j, n) * x[j];
+      }
+      new_x[i] *= w;
+      new_x[i] += (1. - w) * x[i];
+    }
+    return new_x;
   }
 
 };

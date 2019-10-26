@@ -23,6 +23,8 @@ class IterationMethods {
       d[i] = b[i] / A[i][i];
     }
 
+    PrintMatrix(d, "d");
+
     vector<T> prev_x(n, T(0));
 
     int iters = 10;
@@ -58,7 +60,7 @@ class IterationMethods {
     return prev_x;
   }
 
-  
+
   vector<T> RelaxationMethod(Matrix<T> A, vector<T> b, double w = 0.5) {
     int n = A.size();
     Matrix < T > B(n, vector<T>(n, T(0)));

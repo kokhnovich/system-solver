@@ -147,9 +147,16 @@ void SolveTask3() {
 }
 
 void SolveTask4() {
-  Matrix<double> A_1 = {
+  auto solver = new Solver<double>();
 
+  Matrix<double> A_1 = {
+      {0, -2, 2},
+      {2, 3, 5},
+      {-2, 4, 1},
+      {-2, 3, 0}
   };
+  vector<double> b_1 = {0, 10, 3, 1};
+  PrintMatrix(solver->SolveThreeDiagonalSystem(A_1, b_1), "Solution");
 
   Matrix<double> A_2 = {
       {0, 4, -3},
@@ -163,9 +170,11 @@ void SolveTask4() {
       {0, 3, 2},
       {5, -4, 0}
   };
-
   vector<double> b_2 = {1, 2, 2, 0, 7, -8, -9, 6, 5, 1};
-
-  auto solver = new Solver<double>();
   PrintMatrix(solver->SolveThreeDiagonalSystem(A_2, b_2), "Solution");
+}
+
+void SolveTask5() {
+  auto solver = HW_Solver<double>();
+  PrintMatrix(solver.task5_relax(1000, 1.));
 }
