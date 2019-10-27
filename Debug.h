@@ -14,7 +14,7 @@ void PrintMatrix(const vector<vector<T>>& a, const string& message = "") {
     }
     cout << endl;
   }
-  cout << "\n\n";
+  cout << endl;
 }
 template<typename T>
 void PrintMatrix(const vector<T>& a, const string& message = "") {
@@ -22,7 +22,7 @@ void PrintMatrix(const vector<T>& a, const string& message = "") {
   for (auto& i : a) {
     cout << i << " ";
   }
-  cout << "\n\n";
+  cout << endl;
 }
 
 template<typename T>
@@ -34,7 +34,7 @@ void PrintPartOfMatrix(const vector<vector<T>>& a, size_t size_ = 8, const strin
     }
     cout << endl;
   }
-  cout << "\n\n";
+  cout << endl;
 }
 
 #endif //SYSTEM_SOLVER__DEBUG_H_

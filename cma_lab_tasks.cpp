@@ -176,5 +176,15 @@ void SolveTask4() {
 
 void SolveTask5() {
   auto solver = HW_Solver<double>();
-  PrintMatrix(solver.task5_relax(1000, 1.));
+
+  vector<int> ranges = {500, 1000, 2000, 4000};
+
+  for(auto& range : ranges) {
+    for(double w = -1.; w <= 1.; w += 0.1) {
+      cout << range << " " << fixed << setprecision(2) << w << " ";
+      auto ans = solver.task5_relax(range, w);
+      // PrintMatrix(ans.first);
+      cout << ans.second << endl;
+    }
+  }
 }

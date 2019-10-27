@@ -111,32 +111,27 @@ class HW_Solver : public Solver<T> {
     }
   }
 
-  vector<double> task5_relax(int n, double w = 1) {
-    // int iters = 25;
+
+  /// ans and number of iterations
+
+  pair<vector<double>, int> task5_relax(int n, double w = 1) {
     double EPS = 1e-10;
     vector<double> x(n, T(0));
-//    vector<T> x_new = task5_relax_step(x, w);
-//    for(int i = 0; i < n; ++i) {
-//      diff[i] = abs(x[i] - x_new[i]);
-//    }
     vector<double> diff(n), x_new;
     double error = 1;
-    PrintMatrix(x, "iter 0");
-    int iter = 1;
-    while (error > EPS) {
-      cout << error << endl;
+    int iteration_count = 0;
+    int iteration_limit = 100;
+    while (error > EPS && iteration_count < iteration_limit) {
+      //cout << error << endl;
+      ++iteration_count;
       x_new = task5_relax_step(x, w);
-      PrintMatrix(x, "iter " + to_string(iter));
-      PrintMatrix(x_new, "iter " + to_string(iter++));
       for (int i = 0; i < n; ++i) {
         diff[i] = abs(x[i] - x_new[i]);
       }
-      PrintMatrix(diff, "diff");
       error = *max_element(begin(diff), end(diff));
-      cout << error << endl;
       x = x_new;
     }
-    return x;
+    return {x, iteration_count};
   }
 
   vector<double> task5_relax_step(const vector<double>& x, double w) {
