@@ -22,16 +22,16 @@ class LatexWriter {
   ofstream stream;
 
  public:
-  explicit LatexWriter(const string& filename) : filename_(filename), stream(filename_, std::ios::out) {
+  explicit LatexWriter(const string& filename="latex.tex") : filename_(filename), stream(filename_, std::ios::out) {
     StartFile();
   }
 
-  void Testing() {
+  /*void Testing() {
     Matrix<int> A = generateRandomSymmetricMatrix<int>(3);
     this->WriteMatrix(A);
     EndFile();
     this->CompileThisHell();
-  }
+  }*/
 
 //  ~LatexWriter() {
 //    EndFile();
@@ -41,7 +41,7 @@ class LatexWriter {
     stream << text << endl;
   }
 
-  void PrintFormul(const string& text) {
+  void PrintFormula(const string& text) {
     stream << "$" << endl;
     stream << text << endl;
     stream << "$" << endl;
@@ -54,7 +54,7 @@ class LatexWriter {
   }
 
   template<class T>
-  void WriteMatrix(const Matrix<T>& a, const string& message = "") {
+  void PrintMatrix(const Matrix<T>& a, const string& message = "") {
     stream << message << endl;
     stream << "$\\begin{bmatrix}" << endl;
     for (auto& i : a) {
@@ -65,11 +65,6 @@ class LatexWriter {
     }
     stream << "\\end{bmatrix}$" << endl;
   }
-
- private:
-//  void ClearFile() {
-//    ofstream stream(filename_, std::ios::trunc);
-//  }
 
   void StartFile() {
     PrintText(START_STR);

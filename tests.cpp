@@ -1,4 +1,5 @@
 
+#include "MatrixChanger.h"
 template<typename T>
 bool checkUpperMatrix(const Matrix<T>& a) {
   assert(a.size() == a[0].size());
@@ -44,6 +45,47 @@ void TestLU() {
 
 }
 
+void TestMatrixChanger() {
+  Matrix<double> m = {{1, 2, 3},
+                      {4, 4, 5},
+                      {5, 6, 2}};
+  MatrixChanger matrix_changer(m);
+  matrix_changer.Print();
+  while (true) {
+    string cmd;
+    cin >> cmd;
+    if (cmd == "swaprow") {
+      int i, j;
+      cin >> i >> j;
+      matrix_changer.SwapRows(i, j);
+    } else if (cmd == "addrow") {
+      int i, j;
+      double k;
+      cin >> i >> j >> k;
+      matrix_changer.AddRow(i, j, double(k));
+    } else if (cmd == "multrow") {
+      int i;
+      double k;
+      cin >> i >> k;
+      matrix_changer.MultRow(i, double(k));
+    } else if (cmd == "swapcol") {
+      int i, j;
+      cin >> i >> j;
+      matrix_changer.SwapCols(i, j);
+    } else if (cmd == "addcol") {
+      int i, j;
+      double k;
+      cin >> i >> j >> k;
+      matrix_changer.AddCol(i, j, double(k));
+    } else if (cmd == "multcol") {
+      int i;
+      double k;
+      cin >> i >> k;
+      matrix_changer.MultCol(i, double(k));
+    }
+    matrix_changer.Print();
+  }
+}
 void RunTests() {
   FractionTests();
 }

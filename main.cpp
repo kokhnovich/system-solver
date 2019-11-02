@@ -9,6 +9,8 @@
 //#include <functional>
 #include <bits/stdc++.h>
 
+// #define double long double
+
 // #pragma comment(linker, "/stack:200000000")
 // #pragma GCC optimize("O3")
 // #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
@@ -27,7 +29,6 @@ using Matrix = vector<vector<T>>;
 // @TODO LABAAA
 // @TODO norm tests
 // @TODO optimize using profiler
-// @TODO class LatexWriter
 // @TODO iteration methods
 // @TODO make directories
 
@@ -41,14 +42,14 @@ using Matrix = vector<vector<T>>;
 #include "hwsolver.h"
 #include "LatexWriter.h"
 #include "IterationMethods/IterationMethods.h"
-#include "cma_lab_tasks.cpp"
+#include "lab/cma_lab_tasks.cpp"
 
 #include "MatrixChanger.h"
 
 int main() {
   // SolveTask1();
-  // SolveTask2();
-  // SolveTask3();
+  SolveTask2();
+  //SolveTask3();
   // SolveTask4();
   // SolveTask5();
   return 0;
