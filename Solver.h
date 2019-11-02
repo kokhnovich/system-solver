@@ -63,7 +63,7 @@ class Solver {
                         Matrix<T> B,
                         const SolverMethod& method_ = SolverMethod::DO_NOT_TOUCH);
   Matrix<T> GetReversed(Matrix<T> A);
-  vector<T> SolveLinearSystemUsingDLUP(Matrix<T> A, vector<T> B);
+  vector<T> SolveLinearSystemUsingDLUP(Matrix<T> A, vector<T> b);
   Matrix<T> Transpose(Matrix<T> A);
 
   static void Print(const Matrix<T>& A, const vector<int>& ans_order);
@@ -78,6 +78,8 @@ class Solver {
   tuple<Matrix<T>, vector<T>> LDL_Decomposition(Matrix<T> A);
 
   vector<T> SolveThreeDiagonalSystem(Matrix<T> A, vector<T> b);
+  vector<T> SolveUp(const Matrix<T>& A, const vector<T>& b);
+  vector<T> SolveDown(const Matrix<T>& A, const vector<T>& b);
 
  protected:
 

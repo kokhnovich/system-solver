@@ -306,6 +306,8 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
   vector<Matrix<T>> Ps, Ds;
   Matrix<T> L(n, vector<T>(n, T(0))), U(move(A)), I(getIdentityMatrix<T>(n));
 
+  // vector<pair<int, int>>
+
   bool is_first = true;
   for (int stage = 0; stage < n; ++stage) {
     pair<int, int> best_pos;
@@ -332,12 +334,12 @@ tuple<Matrix<T>, Matrix<T>, Matrix<T>, Matrix<T>> Solver<T, Func>::DLUP_Decompos
     swap_rows(U, stage, best_pos.first);
     swap_columns(U, stage, best_pos.second);
 
-    if (stage != best_pos.first) {
-      cout << "change rows fact " << stage << " " << best_pos.first << "\n";
-    }
-    if (stage != best_pos.second) {
-      cout << "change column fact " << stage << " " << best_pos.second << "\n";
-    }
+//    if (stage != best_pos.first) {
+//      cout << "change rows fact " << stage << " " << best_pos.first << "\n";
+//    }
+//    if (stage != best_pos.second) {
+//      cout << "change column fact " << stage << " " << best_pos.second << "\n";
+//    }
 
     Matrix<T> P(I), D(I);
     swap(P[stage], P[best_pos.second]);
@@ -403,7 +405,7 @@ tuple<Matrix<T>, vector<T>> Solver<T, Func>::LDL_Decomposition(Matrix<T> A) {
   for (int now = 0; now < A.size(); ++now) {
     // Assert(A[now][now] != 0, "TRUBA\n");
     if (A[now][now] == 0) {
-      cerr << "TRUBA found" << endl;
+      throw std::invalid_argument("bad matrix");
     }
     if (A[now][now] < T(0)) {
       for (int col = now; col < A.size(); ++col) {
@@ -441,7 +443,7 @@ vector<T> Solver<T, Func>::SolveThreeDiagonalSystem(Matrix<T> A, vector<T> b) {
 
   b.back() /= A.back()[1];
   A.back()[1] = 1;
-  for(int i = A.size() - 2; i >= 0; --i) {
+  for (int i = A.size() - 2; i >= 0; --i) {
     b[i] -= A[i][2] * b[i + 1];
     b[i] /= A[i][1];
     A[i][1] = 1;
@@ -475,6 +477,34 @@ void Solver<T, Func>::PrintThreeDiagonal(const Matrix<T>& A) {
     cout << T(0) << " ";
   }
   cout << A.back()[0] << " " << A.back()[1] << endl;
+}
+
+template<typename T, class Func>
+vector<T> Solver<T, Func>::SolveUp(const Matrix<T>& A, const vector<T>& b) {
+  assert(A.size() == A[0].size() && b.size() == A.size());
+  int n = A.size();
+  vector<T> ans(b);
+  for (int i = n - 1; i >= 0; --i) {
+    for (int j = i + 1; j < n; ++j) {
+      ans[i] -= ans[j] * A[i][j];
+    }
+    ans[i] /= A[i][i];
+  }
+  return ans;
+}
+
+template<typename T, class Func>
+vector<T> Solver<T, Func>::SolveDown(const Matrix<T>& A, const vector<T>& b) {
+  assert(A.size() == A[0].size() && b.size() == A.size());
+  int n = A.size();
+  vector<T> ans(b);
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < i; ++j) {
+      ans[i] -= ans[j] * A[i][j];
+    }
+    ans[i] /= A[i][i];
+  }
+  return ans;
 }
 
 template<typename T, class Func>
@@ -528,40 +558,40 @@ Matrix<T> Solver<T, Func>::Transpose(Matrix<T> A) {
   return A;
 }
 template<typename T, class Func>
-vector<T> Solver<T, Func>::SolveLinearSystemUsingDLUP(Matrix<T> A, vector<T> B) {
+vector<T> Solver<T, Func>::SolveLinearSystemUsingDLUP(Matrix<T> A, vector<T> b) {
   int n = A.size();
 
   Matrix<T> D, L, U, P;
   tie(D, L, U, P) = DLUP_Decomposition(A, SolverMethod::BEST_IN_COLUMN);
-//  PrintMatrix(D, "D");
-//  PrintMatrix(L, "L");
-//  PrintMatrix(U, "U");
-//  PrintMatrix(P, "P");
-//  if (!compareMatrixOfDouble(A, mult(mult(GetReversed(D), L), mult(U, GetReversed(P))))) {
-//    cerr << "Smth goes wrong" << endl;
-//    assert(false);
-//  }
-  vector<T> B_original(B);
+  PrintMatrix(D, "D");
+  PrintMatrix(L, "L");
+  PrintMatrix(U, "U");
+  PrintMatrix(P, "P");
+  if (!compareMatrixOfDouble(A, mult(mult(GetReversed(D), L), mult(U, GetReversed(P))))) {
+    cerr << "Smth goes wrong" << endl;
+    assert(false);
+  }
+  vector<T> b_original(b);
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
       if (D[i][j]) {
-        B[i] = B_original[j];
+        b[i] = b_original[j];
       }
     }
   }
   // L Y = B
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < i; ++j) {
-      B[i] -= L[i][j] * B[j];
+      b[i] -= L[i][j] * b[j];
     }
-    B[i] /= L[i][i];
+    b[i] /= L[i][i];
   }
 
   for (int i = n - 1; i >= 0; --i) {
     for (int j = i + 1; j < n; ++j) {
-      B[i] -= U[i][j] * B[j];
+      b[i] -= U[i][j] * b[j];
     }
   }
 
-  return B;
+  return b;
 }

@@ -8,40 +8,6 @@
 template<typename T>
 class HW_Solver : public Solver<T> {
  public:
-  Matrix<T> task1_crazy_gauss(Matrix<T> A) {
-    int n = A.size();
-    Matrix < T > B(getIdentityMatrix<T>(n));
-    for (int i = n - 1; i >= 1; --i) {
-      // cout << i << " " << A[i - 1][i] / A[i][i] << endl;
-      if (compareDouble(A[i][i], 0)) throw logic_error("divide by zero");
-      T k = A[i - 1][i] / A[i][i];
-      // Solver<T>::sub_row(A, i - 1, i, k);
-      for (int j = 0; j <= i; ++j) {
-        A[i - 1][j] -= A[i][j] * k;
-      }
-      // Solver<T>::sub_row(B, i - 1, i, k);
-      for (int j = 0; j < n; ++j) {
-        B[i - 1][j] -= B[i][j] * k;
-      }
-    }
-    // PrintMatrix(A, "A");
-    // PrintMatrix(B, "B");
-    for (int i = 0; i < n; ++i) {
-      for (int j = 0; j < i; ++j) {
-        // Solver<T>::sub_row(B, i, j, A[i][j]);
-        for (int k = 0; k < n; ++k) {
-          B[i][k] -= B[j][k] * A[i][i];
-          B[i][k] /= A[i][i];
-        }
-      }
-      if (compareDouble(0, A[i][i])) throw logic_error("divide by zero");
-      // A[i][i] = 1;
-      // PrintMatrix(A, "A stage " + to_string(i));
-      // PrintMatrix(B, "B stage " + to_string(i));
-    }
-    return B;
-  }
-
   void task1_gauss_sub_row(Matrix<T>& A, Matrix<T>& B, int i, int n, int start_j, int end_j) {
     for (int j = start_j; j < end_j; ++j) {
       if (A[i][i] == 0) throw logic_error("divide by zero");
@@ -111,6 +77,121 @@ class HW_Solver : public Solver<T> {
     }
   }
 
+  vector<double> task2_dlup(Matrix<double>& A, vector<double>& b) {
+    int n = A.size();
+
+    vector<Matrix<T>> Ps, Ds;
+    Matrix<double> L(n, vector<T>(n, 0)), U(move(A)), I(getIdentityMatrix<T>(n));
+
+    vector<pair<int, int>> p, d;
+
+    bool is_first = true;
+    for (int stage = 0; stage < n; ++stage) {
+      pair<int, int> best_pos = {Solver<double>::best_in_the_col(U, stage), stage};
+
+      Solver<double>::swap_rows(U, stage, best_pos.first);
+      Solver<double>::swap_columns(U, stage, best_pos.second);
+
+//    if (stage != best_pos.first) {
+//      cout << "change rows fact " << stage << " " << best_pos.first << "\n";
+//    }
+//    if (stage != best_pos.second) {
+//      cout << "change column fact " << stage << " " << best_pos.second << "\n";
+//    }
+
+      Matrix<double> P(I), D(I);
+      swap(P[stage], P[best_pos.second]);
+      swap(D[stage], D[best_pos.first]);
+      Ds.push_back(D);
+      Ps.push_back(P);
+
+      p.push_back(std::make_pair(stage, best_pos.second));
+      d.push_back(std::make_pair(stage, best_pos.first));
+
+      // PrintMatrix(U, "U after changes");
+
+      if (is_first) {
+        is_first = false;
+      } else {
+        L = mult(D, L);
+      }
+
+      for (int row = stage; row < n; ++row) {
+        L[row][stage] = U[row][stage];
+      }
+
+      assert(U[stage][stage] != T(0));
+      double k = U[stage][stage];
+      for (int col = stage; col < n; ++col) {
+        U[stage][col] /= k;
+      }
+
+      for (int row = stage + 1; row < n; ++row) {
+        Solver<double>::sub_row(U, row, stage, U[row][stage]);
+      }
+
+//    cout << "After stage " << stage << endl;
+//    PrintMatrix(U, "U" + to_string(stage));
+//    PrintMatrix(L, "L" + to_string(stage));
+//    PrintMatrix(P, "P" + to_string(stage));
+//    PrintMatrix(D, "D" + to_string(stage));
+    }
+
+    Matrix<double> P = I;
+    for (int i = 0; i < Ps.size(); ++i) {
+      P = mult(P, Ps[i]);
+    }
+
+    vector<int> p_order(n), d_order(n);
+    for(int i = 0; i < n; ++i) {
+      p_order[i] = i;
+      d_order[i] = i;
+    }
+
+    Matrix<double> D = I;
+    for (int i = Ds.size() - 1; i >= 0; --i) {
+      D = mult(D, Ds[i]);
+    }
+
+    for(int i = d.size() - 1; i >= 0; --i) {
+      std::swap(d_order[d[i].first], d_order[d[i].second]);
+    }
+    for(int i = 0; i < p.size(); ++i) {
+      std::swap(p_order[p[i].first], p_order[p[i].second]);
+    }
+
+    PrintMatrix(p_order, "p_order");
+    PrintMatrix(d_order, "d_order");
+
+    PrintMatrix(D, "D");
+    PrintMatrix(L, "L");
+    PrintMatrix(U, "U");
+    PrintMatrix(P, "P");
+
+    vector<double> b_original(b);
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < n; ++j) {
+        if (D[i][j]) {
+          b[i] = b_original[j];
+        }
+      }
+    }
+    // L Y = B
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < i; ++j) {
+        b[i] -= L[i][j] * b[j];
+      }
+      b[i] /= L[i][i];
+    }
+
+    for (int i = n - 1; i >= 0; --i) {
+      for (int j = i + 1; j < n; ++j) {
+        b[i] -= U[i][j] * b[j];
+      }
+    }
+
+    return b;
+  }
 
   /// ans and number of iterations
 
