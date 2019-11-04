@@ -77,14 +77,11 @@ class HW_Solver : public Solver<T> {
     }
   }
 
-  vector<double> task2_dlup(Matrix<double>& A, vector<double>& b) {
-    int n = A.size();
 
-    vector<Matrix<T>> Ps, Ds;
-    Matrix<double> L(n, vector<T>(n, 0)), U(move(A)), I(getIdentityMatrix<T>(n));
-
-    vector<pair<int, int>> p, d;
-
+  vector<double> task2_dlup(Matrix<double>& U, vector<double>& b) {
+    int n = U.size();
+    Matrix<double> L(n, vector<T>(n, 0));
+    vector<pair<int, int>> d;
     bool is_first = true;
     for (int stage = 0; stage < n; ++stage) {
       pair<int, int> best_pos = {Solver<double>::best_in_the_col(U, stage), stage};
@@ -92,28 +89,12 @@ class HW_Solver : public Solver<T> {
       Solver<double>::swap_rows(U, stage, best_pos.first);
       Solver<double>::swap_columns(U, stage, best_pos.second);
 
-//    if (stage != best_pos.first) {
-//      cout << "change rows fact " << stage << " " << best_pos.first << "\n";
-//    }
-//    if (stage != best_pos.second) {
-//      cout << "change column fact " << stage << " " << best_pos.second << "\n";
-//    }
-
-      Matrix<double> P(I), D(I);
-      swap(P[stage], P[best_pos.second]);
-      swap(D[stage], D[best_pos.first]);
-      Ds.push_back(D);
-      Ps.push_back(P);
-
-      p.push_back(std::make_pair(stage, best_pos.second));
       d.push_back(std::make_pair(stage, best_pos.first));
-
-      // PrintMatrix(U, "U after changes");
 
       if (is_first) {
         is_first = false;
       } else {
-        L = mult(D, L);
+        Solver<double>::swap_rows(L, stage, best_pos.first);
       }
 
       for (int row = stage; row < n; ++row) {
@@ -129,37 +110,18 @@ class HW_Solver : public Solver<T> {
       for (int row = stage + 1; row < n; ++row) {
         Solver<double>::sub_row(U, row, stage, U[row][stage]);
       }
-
-//    cout << "After stage " << stage << endl;
-//    PrintMatrix(U, "U" + to_string(stage));
-//    PrintMatrix(L, "L" + to_string(stage));
-//    PrintMatrix(P, "P" + to_string(stage));
-//    PrintMatrix(D, "D" + to_string(stage));
     }
 
-    Matrix<double> P = I;
-    for (int i = 0; i < Ps.size(); ++i) {
-      P = mult(P, Ps[i]);
-    }
-
-    vector<int> p_order(n), d_order(n);
-    for(int i = 0; i < n; ++i) {
-      p_order[i] = i;
+    vector<int> d_order(n);
+    for (int i = 0; i < n; ++i) {
       d_order[i] = i;
     }
 
-    Matrix<double> D = I;
-    for (int i = Ds.size() - 1; i >= 0; --i) {
-      D = mult(D, Ds[i]);
-    }
-
-    for(int i = d.size() - 1; i >= 0; --i) {
+    for (int i = d.size() - 1; i >= 0; --i) {
       std::swap(d_order[d[i].first], d_order[d[i].second]);
     }
-    for(int i = 0; i < p.size(); ++i) {
-      std::swap(p_order[p[i].first], p_order[p[i].second]);
-    }
 
+    /*
     PrintMatrix(p_order, "p_order");
     PrintMatrix(d_order, "d_order");
 
@@ -167,16 +129,26 @@ class HW_Solver : public Solver<T> {
     PrintMatrix(L, "L");
     PrintMatrix(U, "U");
     PrintMatrix(P, "P");
+    */
 
+    /*
     vector<double> b_original(b);
     for (int i = 0; i < n; ++i) {
       for (int j = 0; j < n; ++j) {
-        if (D[i][j]) {
+        if (d_order[j] == i) {
+        //if (D[i][j]) {
           b[i] = b_original[j];
         }
       }
     }
-    // L Y = B
+    */
+
+    vector<double> new_b(n);
+    for(int i = 0; i < n; ++i) {
+      new_b[d_order[i]] = b[i];
+    }
+    b = (new_b);
+
     for (int i = 0; i < n; ++i) {
       for (int j = 0; j < i; ++j) {
         b[i] -= L[i][j] * b[j];
@@ -194,7 +166,6 @@ class HW_Solver : public Solver<T> {
   }
 
   /// ans and number of iterations
-
   pair<vector<double>, int> task5_relax(int n, double w = 1) {
     double EPS = 1e-10;
     vector<double> x(n, T(0));
@@ -231,6 +202,33 @@ class HW_Solver : public Solver<T> {
     return new_x;
   }
 
+  vector<double> task3_gauss_for_sym(Matrix<double>& U, vector<double>& b) {
+    int n = U.size();
+    for (int i = 1; i < n; ++i) {
+      for (int j = 0; j < i; ++j) {
+        U[i][j] = 0;
+      }
+    }
+    Matrix<double> L(n, vector<double>(n, 0));
+    for (int stage = 0; stage < n; ++stage) {
+      L[stage][stage]=1;
+      for (int row = stage + 1; row < n; ++row) {
+        double k = U[stage][row] / U[stage][stage];
+        L[row][stage] = k;
+        for (int col = row; col < n; ++col) {
+          U[row][col] -= k * U[stage][col];
+        }
+        b[row] -= b[stage] * k;
+      }
+      // PrintMatrix(A, "A" + to_string(stage));
+    }
+
+    //PrintMatrix(L, "L");
+    //PrintMatrix(U, "U");
+    //PrintMatrix(mult(L, U), "LU");
+    //PrintMatrix(b, "b");
+    return Solver<double>::SolveUp(U, b);
+  }
 };
 
 #endif //SYSTEM_SOLVER__HWSOLVER_H_
