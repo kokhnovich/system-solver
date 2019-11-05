@@ -403,18 +403,16 @@ template<typename T, class Func>
 tuple<Matrix<T>, vector<T>> Solver<T, Func>::LDL_Decomposition(Matrix<T> A) {
   vector<T> D(A.size(), T(1));
   for (int now = 0; now < A.size(); ++now) {
-    // Assert(A[now][now] != 0, "TRUBA\n");
     if (A[now][now] == 0) {
       throw std::invalid_argument("bad matrix");
     }
+    T k;
     if (A[now][now] < T(0)) {
-      for (int col = now; col < A.size(); ++col) {
-        A[now][col] *= T(-1);
-      }
+      k = sqrt(-A[now][now]);
       D[now] = T(-1);
+    } else {
+      k = sqrt(A[now][now]);
     }
-
-    T k = sqrt(A[now][now]);
     for (int col = now; col < A.size(); ++col) {
       A[now][col] /= k;
     }
