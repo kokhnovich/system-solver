@@ -157,6 +157,14 @@ Matrix<T> getNewHWMatrix(int n = 12) {
   return m;
 }
 
+template<class T>
+Matrix<T> getAnotherHWMatrix(int n = 12) {
+  Matrix<T> m = {{2 * (n + 1), 4 + 5 * n, 1 + 2 * n},
+                 {-1 - 2 * n, -3 - 5 * n, -1 - 2 * n},
+                 {3 * n, 7 * n + 2, 1 + 3 * n}};
+  return m;
+}
+
 template<typename T>
 Matrix<T> getIdentityMatrix(int n) {
   Matrix<T> A(n, vector<T>(n, T(0)));

@@ -8,18 +8,18 @@
 template<typename T>
 void PrintMatrixInLatex(const vector<vector<T>>& a, const string& message = "") {
   cout << message << endl;
-  cout << "$\\begin{bmatrix}" << endl;
+  cout << "\\begin{bmatrix}" << endl;
   for (auto& i : a) {
     for (auto& j : i) {
       cout << setw(6) << j << " & ";
     }
     cout << "\\\\" << endl;
   }
-  cout << "\\end{bmatrix}$" << endl;
+  cout << "\\end{bmatrix}" << endl;
 }
 
 template<typename T>
-void PrintMatrix(const vector<vector<T>>& a, const string& message = "", bool latex=true) {
+void PrintMatrix(const vector<vector<T>>& a, const string& message = "", bool latex=LATEX) {
   if (latex) {
     PrintMatrixInLatex(a, message);
   } else {
@@ -37,18 +37,18 @@ void PrintMatrix(const vector<vector<T>>& a, const string& message = "", bool la
 template<typename T>
 void PrintMatrixInLatex(const vector<T>& a, const string& message = "") {
   cout << message << endl;
-  cout << "$\\begin{bmatrix}" << endl;
+  cout << "\\begin{bmatrix}" << endl;
 
   for (auto& j : a) {
     cout << setw(6) << j << " & ";
   }
   cout << "\\\\" << endl;
 
-  cout << "\\end{bmatrix}$" << endl;
+  cout << "\\end{bmatrix}" << endl;
 }
 
 template<typename T>
-void PrintMatrix(const vector<T>& a, const string& message = "", bool latex=true) {
+void PrintMatrix(const vector<T>& a, const string& message = "", bool latex=LATEX) {
   if (latex) {
     PrintMatrixInLatex(a, message);
   } else {

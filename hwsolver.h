@@ -69,15 +69,6 @@ class HW_Solver : public Solver<T> {
     return ans;
   }
 
-  T task5_get_Bij(int i, int j, int n) {
-    if (!(i == 0 && j == 0) && !(i == n - 1 && j == n - 1) && (i == 0 || j == 0 || i == n - 1 || j == n - 1)) {
-      return -1. / n;
-    } else {
-      return 0;
-    }
-  }
-
-
   vector<double> task2_dlup(Matrix<double>& U, vector<double>& b) {
     int n = U.size();
     Matrix<double> L(n, vector<T>(n, 0));
@@ -121,30 +112,8 @@ class HW_Solver : public Solver<T> {
       std::swap(d_order[d[i].first], d_order[d[i].second]);
     }
 
-    /*
-    PrintMatrix(p_order, "p_order");
-    PrintMatrix(d_order, "d_order");
-
-    PrintMatrix(D, "D");
-    PrintMatrix(L, "L");
-    PrintMatrix(U, "U");
-    PrintMatrix(P, "P");
-    */
-
-    /*
-    vector<double> b_original(b);
-    for (int i = 0; i < n; ++i) {
-      for (int j = 0; j < n; ++j) {
-        if (d_order[j] == i) {
-        //if (D[i][j]) {
-          b[i] = b_original[j];
-        }
-      }
-    }
-    */
-
     vector<double> new_b(n);
-    for(int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
       new_b[d_order[i]] = b[i];
     }
     b = (new_b);
@@ -165,6 +134,86 @@ class HW_Solver : public Solver<T> {
     return b;
   }
 
+  vector<double> task3_lu_for_sym(Matrix<double>& U, vector<double>& b) {
+    int n = U.size();
+    for (int i = 1; i < n; ++i) {
+      for (int j = 0; j < i; ++j) {
+        U[i][j] = 0;
+      }
+    }
+    Matrix<double> L(n, vector<double>(n, 0));
+    for (int stage = 0; stage < n; ++stage) {
+      L[stage][stage] = 1;
+      for (int row = stage + 1; row < n; ++row) {
+        double k = U[stage][row] / U[stage][stage];
+        L[row][stage] = k;
+        for (int col = row; col < n; ++col) {
+          U[row][col] -= k * U[stage][col];
+        }
+        b[row] -= b[stage] * k;
+      }
+    }
+
+    return Solver<double>::SolveUp(U, b);
+  }
+
+  vector<double> task3_ldlt(Matrix<double>& L, vector<double>& b) {
+    // vector<T> D(L.size(), 1);
+    int n = L.size();
+
+    for (int now = 0; now < n; ++now) {
+      double k = (L[now][now] < 0 ? -sqrt(-L[now][now]) : sqrt(L[now][now]));
+      for (int col = now; col < n; ++col) {
+        L[now][col] /= k;
+      }
+      b[now] /= k;
+      for (int row = now + 1; row < n; ++row) {
+        double kk = L[row][now] / L[now][now];
+        for (int col = now; col < L.size(); ++col) {
+          L[row][col] -= L[now][col] * kk;
+        }
+        b[row] -= kk * b[now];
+      }
+    }
+
+    // instead of transposition we can use L[j][i] rather than L[i][j]
+    // L = Solver<double>::Transpose(L);
+
+    // PrintMatrix(mult(L, Solver<double>::Transpose(L)));
+    // PrintMatrix(b, "b 2.0");
+
+    for (int i = n - 1; i >= 0; --i) {
+      for (int j = i + 1; j < n; ++j) {
+        b[i] -= L[i][j] * b[j];
+      }
+      b[i] /= L[i][i];
+    }
+    return b;
+  }
+
+  T task5_get_Bij(int i, int j, int n) {
+    if (!(i == 0 && j == 0) && !(i == n - 1 && j == n - 1) && (i == 0 || j == 0 || i == n - 1 || j == n - 1)) {
+      return -1. / n;
+    } else {
+      return 0;
+    }
+  }
+
+  vector<double> task5_relax_step(const vector<double>& x, double w) {
+    int n = x.size();
+    vector<double> new_x(n, 1. / n);
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < i; ++j) {
+        new_x[i] += task5_get_Bij(i, j, n) * new_x[j];
+      }
+      for (int j = i; j < n; ++j) {
+        new_x[i] += task5_get_Bij(i, j, n) * x[j];
+      }
+      new_x[i] *= w;
+      new_x[i] += (1. - w) * x[i];
+    }
+    return new_x;
+  }
   /// ans and number of iterations
   pair<vector<double>, int> task5_relax(int n, double w = 1) {
     double EPS = 1e-10;
@@ -184,50 +233,6 @@ class HW_Solver : public Solver<T> {
       x = x_new;
     }
     return {x, iteration_count};
-  }
-
-  vector<double> task5_relax_step(const vector<double>& x, double w) {
-    int n = x.size();
-    vector<double> new_x(n, 1. / n);
-    for (int i = 0; i < n; ++i) {
-      for (int j = 0; j < i; ++j) {
-        new_x[i] += task5_get_Bij(i, j, n) * new_x[j];
-      }
-      for (int j = i; j < n; ++j) {
-        new_x[i] += task5_get_Bij(i, j, n) * x[j];
-      }
-      new_x[i] *= w;
-      new_x[i] += (1. - w) * x[i];
-    }
-    return new_x;
-  }
-
-  vector<double> task3_gauss_for_sym(Matrix<double>& U, vector<double>& b) {
-    int n = U.size();
-    for (int i = 1; i < n; ++i) {
-      for (int j = 0; j < i; ++j) {
-        U[i][j] = 0;
-      }
-    }
-    Matrix<double> L(n, vector<double>(n, 0));
-    for (int stage = 0; stage < n; ++stage) {
-      L[stage][stage]=1;
-      for (int row = stage + 1; row < n; ++row) {
-        double k = U[stage][row] / U[stage][stage];
-        L[row][stage] = k;
-        for (int col = row; col < n; ++col) {
-          U[row][col] -= k * U[stage][col];
-        }
-        b[row] -= b[stage] * k;
-      }
-      // PrintMatrix(A, "A" + to_string(stage));
-    }
-
-    //PrintMatrix(L, "L");
-    //PrintMatrix(U, "U");
-    //PrintMatrix(mult(L, U), "LU");
-    //PrintMatrix(b, "b");
-    return Solver<double>::SolveUp(U, b);
   }
 };
 

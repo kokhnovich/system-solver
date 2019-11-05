@@ -11,11 +11,13 @@
 
 // #define double long double
 
+#define LATEX false
+
 // #pragma comment(linker, "/stack:200000000")
 // #pragma GCC optimize("O3")
 // #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
 
-#pragma GCC optimize("Ofast")
+// #pragma GCC optimize("Ofast")
 #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
 
 using namespace std;
@@ -47,10 +49,11 @@ using Matrix = vector<vector<T>>;
 #include "MatrixChanger.h"
 
 int main() {
-  // SolveTask1();
-  SolveTask2();
-  //SolveTask3();
+  SolveTask1();
+  // SolveTask2();
+  // SolveTask3();
   // SolveTask4();
   // SolveTask5();
+  //PrintMatrix(getAnotherHWMatrix<double>(13), "hw9", false);
   return 0;
 }
