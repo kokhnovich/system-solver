@@ -23,9 +23,9 @@ class HW_Solver : public Solver<T> {
     }
   }
 
-  Matrix<T> task1_gauss(Matrix<T>& A) {
+  Matrix<T> task1_gauss(Matrix<T> A) {
     int n = A.size();
-    Matrix < T > B(getIdentityMatrix<T>(n));
+    Matrix<T> B(getIdentityMatrix<T>(n));
     for (int i = 0; i < n; ++i) {
 
       int left = i + 1, right = n;
@@ -57,10 +57,11 @@ class HW_Solver : public Solver<T> {
     return B;
   }
 
+  // don't store zeros
   Matrix<T> task1_random_strange_matrix(int n) {
     std::uniform_int_distribution<std::mt19937_64::result_type> udist(10, 1000);
     std::mt19937_64 generator(std::random_device{}());
-    Matrix < T > ans(n, vector<T>(n));
+    Matrix<T> ans(n, vector<T>(n));
     for (int i = 0; i < n; ++i) {
       for (int j = 0; j < min(i + 2, n); ++j) {
         ans[i][j] = udist(generator);
@@ -74,6 +75,8 @@ class HW_Solver : public Solver<T> {
     Matrix<double> L(n, vector<T>(n, 0));
     vector<pair<int, int>> d;
     bool is_first = true;
+    // alongside finding L^T we can do the same operations with vector b
+    // instead of solving lower triangular matrix
     for (int stage = 0; stage < n; ++stage) {
       pair<int, int> best_pos = {Solver<double>::best_in_the_col(U, stage), stage};
 
@@ -141,6 +144,8 @@ class HW_Solver : public Solver<T> {
         U[i][j] = 0;
       }
     }
+
+    // do the same operations with vector b instead of solving a system with lower triangular matrix
     Matrix<double> L(n, vector<double>(n, 0));
     for (int stage = 0; stage < n; ++stage) {
       L[stage][stage] = 1;
@@ -159,6 +164,7 @@ class HW_Solver : public Solver<T> {
 
   vector<double> task3_ldlt(Matrix<double>& L, vector<double>& b) {
     // vector<T> D(L.size(), 1);
+    // instead of storing D I just multiply elements from vector b by -1
     int n = L.size();
 
     for (int now = 0; now < n; ++now) {
@@ -176,7 +182,7 @@ class HW_Solver : public Solver<T> {
       }
     }
 
-    // instead of transposition we can use L[j][i] rather than L[i][j]
+    // instead of transposition we can use L[j][i] rather than L[i][j] in the code below
     // L = Solver<double>::Transpose(L);
 
     // PrintMatrix(mult(L, Solver<double>::Transpose(L)));
@@ -187,6 +193,31 @@ class HW_Solver : public Solver<T> {
         b[i] -= L[i][j] * b[j];
       }
       b[i] /= L[i][i];
+    }
+    return b;
+  }
+
+  vector<double> task4_threediagonal(Matrix<double> A, vector<double> b) {
+    int n = A.size();
+    vector<double> d(n, 0);
+    for (int i = 1; i < n; ++i) {
+      if (A[i - 1][1] == 0) throw std::logic_error("divide by zero");
+      double k = A[i][0] / A[i - 1][1];
+
+      A[i][0] -= k * A[i - 1][1];
+      A[i][1] -= k * A[i - 1][2];
+      b[i] -= k * b[i - 1];
+    }
+
+    // PrintThreeDiagonal(A);
+    // PrintMatrix(b, "b");
+
+    b.back() /= A.back()[1];
+    A.back()[1] = 1;
+    for (int i = n - 2; i >= 0; --i) {
+      b[i] -= A[i][2] * b[i + 1];
+      b[i] /= A[i][1];
+      A[i][1] = 1;
     }
     return b;
   }
@@ -217,11 +248,12 @@ class HW_Solver : public Solver<T> {
   /// ans and number of iterations
   pair<vector<double>, int> task5_relax(int n, double w = 1) {
     double EPS = 1e-10;
+    // don't store matrix at all: function task5_get_Bij returns B[i][j] in O(const)
     vector<double> x(n, T(0));
     vector<double> diff(n), x_new;
     double error = 1;
     int iteration_count = 0;
-    int iteration_limit = 100;
+    int iteration_limit = 100; // don't wait if it tooo slooow
     while (error > EPS && iteration_count < iteration_limit) {
       //cout << error << endl;
       ++iteration_count;

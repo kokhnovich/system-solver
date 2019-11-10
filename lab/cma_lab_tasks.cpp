@@ -2,16 +2,6 @@
 // Created by user on 25.09.19.
 //
 
-/*
- * task1... Done!
- * task2... Done!
- * task3...
- * task4... Done!
- * task5... Done!
- */
-
-#include "task1.h"
-
 void SolveTask1() {
   auto solver = new HW_Solver<double>();
 
@@ -34,27 +24,48 @@ void SolveTask1() {
       {-5, 3, -5, 3, 1, 0, -3, 1, -4}
   };
 
+  auto revA1 = solver->task1_gauss(A1);
+  if (!compareMatrixOfDouble(mult(A1, revA1), getIdentityMatrix<double>(A1.size()))) {
+    PrintMatrix(A1, "A1 original");
+    PrintMatrix(mult(A1, revA1), "A * A^{-1} my");
+  } else {
+    cout << "1. OK" << endl;
+  }
+
+  /* should't work because of non-existance of solution
+  auto revA2 = solver->task1_gauss(A2);
+  if (!compareMatrixOfDouble(mult(A2, revA2), getIdentityMatrix<double>(A2.size()))) {
+    PrintMatrix(A1, "A2 original");
+    PrintMatrix(mult(A1, revA1), "A * A^{-1} my");
+  } else {
+    cout << "2. OK" << endl;
+  }
+  */
+
+
   vector<int> times;
-  for (int cnt = 7500; cnt <= 9000; cnt += 500) {
+  for (int cnt = 7000; cnt <= 7500; cnt += 100) {
     Matrix<double> A(solver->task1_random_strange_matrix(cnt));
-    // PrintMatrix(A, "A");
     Matrix<double> B(getIdentityMatrix<double>(cnt));
     auto timer = new LogDuration("For size=" + to_string(cnt) + " is ");
     try {
       Matrix<double> ans = solver->task1_gauss(A);
+      times.push_back(timer->getTime());
+      delete timer;
+      auto test_timer = new LogDuration("Testing takes ");
+      /*
+      if (!compareMatrixOfDouble(mult(A, ans), B)) {
+        cerr << "ooops... smth goes wrong" << endl;
+        PrintMatrix(ans, "ans");
+        PrintMatrix(A, "A");
+        PrintMatrix(B, "B");
+      }
+      delete test_timer;
+      */
     } catch (std::exception& e) {
       cerr << e.what() << endl;
       continue;
     }
-    // PrintMatrix(ans);
-    // PrintMatrix(mult(A, ans));
-    times.push_back(timer->getTime());
-    delete timer;
-//    if (!compareMatrixOfDouble(mult(A, ans), B)) {
-//      // PrintPartOfMatrix(mult(A, ans), 10, "A * A^{-1}");
-//      // PrintPartOfMatrix(ans, 10, "ans");
-//      cerr << "wroong" << endl;
-//    }
   }
 
   for (const auto& time : times) {
@@ -75,7 +86,6 @@ void SolveTask2() {
       {2, -1, -3, -4, -5, 4, 1, -5}
   };
   vector<double> b = {79, -51, -29, 33, 2, 59, 149, -59};
-  // Matrix<double> B = make2Dfrom1D(b);
   auto solver = new HW_Solver<double>();
   PrintMatrix(A, "A1");
   PrintMatrix(b, "b1");
@@ -98,6 +108,7 @@ void SolveTask2() {
   PrintMatrix(A2, "A2");
   PrintMatrix(b2, "b2");
   PrintMatrix(solver->task2_dlup(A2, b2), "A2 x = b2");
+  // 1 1 1 1 1 1 1 1
 
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(0, 8);
   std::mt19937_64 generator(std::random_device{}());
@@ -114,20 +125,23 @@ void SolveTask2() {
 void SolveTask3() {
   cout << "Solving task 3\n";
   auto solver = new HW_Solver<double>();
+
+  /*
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(-5, 5);
   std::mt19937_64 generator(std::random_device{}());
-//  //Matrix<double> A(generateRandomSymmetricMatrix<double>(4, 2, 10));
-//  Matrix<double> A = {{1, 2, 3, 4},
-//                      {2, 5, 8, 9},
-//                      {3, 8, 6, 10},
-//                      {4, 9, 10, 7}};
-//  vector<double> x(4, 1.);
-//  vector<double> b(generateAnsMatrix(A, x));
-//  PrintMatrix(b, "b");
-//  PrintMatrix(A, "A");
-//  PrintMatrix(solver->task3_ldlt(A, b), "ldlt x = b");
-//  PrintMatrix(solver->task3_lu_for_sym(A, b), "lu x = b");
-//  PrintMatrix(A, "A");
+  //Matrix<double> A(generateRandomSymmetricMatrix<double>(4, 2, 10));
+  Matrix<double> A = {{1, 2, 3, 4},
+                      {2, 5, 8, 9},
+                      {3, 8, 6, 10},
+                      {4, 9, 10, 7}};
+  vector<double> x(4, 1.);
+  vector<double> b(generateAnsMatrix(A, x));
+  PrintMatrix(b, "b");
+  PrintMatrix(A, "A");
+  PrintMatrix(solver->task3_ldlt(A, b), "ldlt x = b");
+  PrintMatrix(solver->task3_lu_for_sym(A, b), "lu x = b");
+  PrintMatrix(A, "A");
+  */
 
   vector<pair<int, int>> times;
   cout << "size --- lu --- ldlt" << endl;
@@ -164,9 +178,6 @@ void SolveTask3() {
     times.push_back(make_pair(time1, time2));
   }
 
-  for (auto& i : times) {
-    cout << i.first << " " << i.second << endl;
-  }
   cout << "\n\n";
   for (auto& i : times) {
     cout << i.first << " ";
@@ -213,15 +224,14 @@ void SolveTask5() {
   auto solver = HW_Solver<double>();
   vector<int> ranges = {500, 1000, 2000, 4000};
   for (auto& range : ranges) {
-    double w = 0.8;
-    //for (double w = -1.; w <= 1.; w += 0.1) {
-    cout << range << " " << fixed << setprecision(10) << w << " ";
-    auto ans = solver.task5_relax(range, w);
-    for (int i = 0; i < 10; ++i) {
-      cout << ans.first[i] << " & ";
+    for (double w = 0.; w <= 2.; w += 0.1) {
+      cout << range << " " << fixed << setprecision(2) << w << " ";
+      auto ans = solver.task5_relax(range, w);
+//      for (int i = 0; i < 10; ++i) {
+//        cout << ans.first[i] << " & ";
+//      }
+//      cout << endl;
+      cout << ans.second << endl;
     }
-    cout << endl;
-    cout << ans.second << endl;
-    //}
   }
 }
