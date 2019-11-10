@@ -2,7 +2,7 @@
 
 // #define double long double
 
-#define LATEX true
+#define LATEX false
 
 // #pragma GCC optimize("Ofast")
 #pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,tune=native")
@@ -31,7 +31,7 @@ int main() {
   // SolveTask1();
   // SolveTask2();
   // SolveTask3();
-  // SolveTask4();
-  SolveTask5();
+  SolveTask4();
+  // SolveTask5();
   return 0;
 }

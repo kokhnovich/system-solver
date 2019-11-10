@@ -31,6 +31,16 @@ class HW_Solver : public Solver<T> {
       int left = i + 1, right = n;
       int mid = (left + right) / 2;
 
+      int next_row = i;
+      while(next_row < n && A[next_row][i] == 0) {
+        ++next_row;
+      }
+      if (next_row == n) throw logic_error("a bad matrix");
+
+      if (next_row != i) {
+        A[i].swap(A[next_row]);
+      }
+
       std::future<void> handleFirst = async(launch::async, &HW_Solver::task1_gauss_sub_row,
                                             this, ref(A), ref(B), i, n, left, mid);
       std::future<void> handleSecond = async(launch::async, &HW_Solver::task1_gauss_sub_row,
@@ -203,15 +213,12 @@ class HW_Solver : public Solver<T> {
     for (int i = 1; i < n; ++i) {
       if (A[i - 1][1] == 0) throw std::logic_error("divide by zero");
       double k = A[i][0] / A[i - 1][1];
-
       A[i][0] -= k * A[i - 1][1];
       A[i][1] -= k * A[i - 1][2];
       b[i] -= k * b[i - 1];
     }
-
     // PrintThreeDiagonal(A);
     // PrintMatrix(b, "b");
-
     b.back() /= A.back()[1];
     A.back()[1] = 1;
     for (int i = n - 2; i >= 0; --i) {

@@ -192,7 +192,7 @@ void SolveTask3() {
 
 void SolveTask4() {
   cout << "Solving task 4\n";
-  auto solver = new Solver<double>();
+  auto solver = new HW_Solver<double>();
 
   Matrix<double> A_1 = {
       {0, -2, 2},
@@ -201,7 +201,7 @@ void SolveTask4() {
       {-2, 3, 0}
   };
   vector<double> b_1 = {0, 10, 3, 1};
-  PrintMatrix(solver->SolveThreeDiagonalSystem(A_1, b_1), "Solution");
+  PrintMatrix(solver->task4_threediagonal(A_1, b_1), "Solution");
 
   Matrix<double> A_2 = {
       {0, 4, -3},
@@ -216,7 +216,7 @@ void SolveTask4() {
       {5, -4, 0}
   };
   vector<double> b_2 = {1, 2, 2, 0, 7, -8, -9, 6, 5, 1};
-  PrintMatrix(solver->SolveThreeDiagonalSystem(A_2, b_2), "Solution");
+  PrintMatrix(solver->task4_threediagonal(A_2, b_2), "Solution");
 }
 
 void SolveTask5() {
