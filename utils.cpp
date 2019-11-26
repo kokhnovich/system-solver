@@ -1,5 +1,5 @@
 template<typename T>
-Matrix<T> mult(Matrix<T> A, Matrix<T> B) {
+Matrix<T> mult(const Matrix<T>& A, const Matrix<T>& B) {
   if (A.empty() || B.empty() || A[0].size() != B.size()) throw logic_error("wrong sizes");
   size_t N = A.size(), M = A[0].size(), K = B[0].size();
   Matrix<T> R(N, vector<T>(K, T(0)));
@@ -11,6 +11,16 @@ Matrix<T> mult(Matrix<T> A, Matrix<T> B) {
     }
   }
   return R;
+}
+
+template<typename T>
+Matrix<T> mult(const Matrix<T>& A, const vector<T>& B) {
+  return mult(A, {B});
+}
+
+template<typename T>
+Matrix<T> mult(const vector<T>& A, const Matrix<T>& B) {
+  return mult({A}, B);
 }
 
 template<typename T>
