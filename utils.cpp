@@ -159,8 +159,8 @@ Matrix<T> getNewHWMatrix(int n = 12) {
 
 Matrix<double> getAnotherHWMatrix(double n = 12) {
   Matrix<double> m = {{2 * (n + 1), 4 + 5 * n, 1 + 2 * n},
-                        {-1 - 2 * n, -3 - 5 * n, -1 - 2 * n},
-                        {3 * n, 7 * n + 2, 1 + 3 * n}};
+                      {-1 - 2 * n, -3 - 5 * n, -1 - 2 * n},
+                      {3 * n, 7 * n + 2, 1 + 3 * n}};
   return m;
 }
 
@@ -171,4 +171,44 @@ Matrix<T> getIdentityMatrix(int n) {
     A[i][i] = T(1);
   }
   return A;
+}
+
+template<typename T>
+T scalar_mult_vectors(const vector<T>& a, const vector<T>& b) {
+  T ans = 0;
+  for(size_t i = 0; i < a.size(); ++i) {
+    ans += a[i] * b[i];
+  }
+}
+
+template<typename T>
+vector<T> operator+(vector<T> a, const vector<T>& b) {
+  if (a.size() != b.size()) {
+    throw logic_error("vectors are different to sub");
+  } else {
+    for (int i = 0; i < a.size(); ++i) {
+      a[i] += b[i];
+    }
+    return a;
+  }
+}
+
+template<typename T>
+vector<T> operator-(vector<T> a, const vector<T>& b) {
+  if (a.size() != b.size()) {
+    throw logic_error("vectors are different to sub");
+  } else {
+    for (int i = 0; i < a.size(); ++i) {
+      a[i] -= b[i];
+    }
+    return a;
+  }
+}
+
+double GetMatrixNorm(const vector<double>& a) {
+  double res = 0;
+  for (auto& i : a) {
+    res += i;
+  }
+  return (double) (res / a.size());
 }
