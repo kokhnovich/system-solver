@@ -24,6 +24,30 @@ Matrix<T> mult(const vector<T>& A, const Matrix<T>& B) {
 }
 
 template<typename T>
+Matrix<T> mult(const vector<T>& A, const vector<T>& B) {
+  return mult({A}, {B});
+}
+
+template<typename T>
+Matrix<T> Transpose(Matrix<T> A) {
+  assert(A.size() == A[0].size());
+  for (int i = 0; i < A.size(); ++i) {
+    for (int j = 0; j < i; ++j) {
+      swap(A[i][j], A[j][i]);
+    }
+  }
+  return A;
+}
+
+void GetMatrixFromSTDIN(Matrix<double>& a) {
+  for (int i = 0; i < a.size(); ++i) {
+    for (int j = 0; j < a[i].size(); ++j) {
+      cin >> a[i][j];
+    }
+  }
+}
+
+template<typename T>
 Matrix<T> generateThreeDiagonal(int size_, int min_elem = -100, int max_elem = 100) {
   std::uniform_int_distribution<std::mt19937_64::result_type> udist(min_elem, max_elem);
   std::mt19937_64 generator(std::random_device{}());
@@ -186,7 +210,7 @@ Matrix<T> getIdentityMatrix(int n) {
 template<typename T>
 T scalar_mult_vectors(const vector<T>& a, const vector<T>& b) {
   T ans = 0;
-  for(size_t i = 0; i < a.size(); ++i) {
+  for (size_t i = 0; i < a.size(); ++i) {
     ans += a[i] * b[i];
   }
 }
@@ -221,4 +245,9 @@ double GetMatrixNorm(const vector<double>& a) {
     res += i;
   }
   return (double) (res / a.size());
+}
+
+template<typename T>
+Matrix<T> operator*(const Matrix<T>& a, const Matrix<T>& b) {
+  return mult(a, b);
 }
