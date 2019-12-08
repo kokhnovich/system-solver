@@ -183,11 +183,10 @@ Matrix<T> getHWMatrix(int n) {
           {n / 3, -1, n, -n}};
 }
 
-template<class T>
-Matrix<T> getNewHWMatrix(int n = 12) {
-  Matrix<T> m = {{2 - n, 0, n - 1},
-                 {n - 1, 1, 1 - n},
-                 {-2 * (n - 1), 0, 2 * n - 1}};
+Matrix<double> getNewHWMatrix(double n = 12) {
+  Matrix<double> m = {{2 - n, 0, n - 1},
+                      {n - 1, 1, 1 - n},
+                      {-2 * (n - 1), 0, 2 * n - 1}};
   return m;
 }
 
