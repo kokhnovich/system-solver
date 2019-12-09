@@ -253,19 +253,22 @@ Matrix<T> operator*(const Matrix<T>& a, const Matrix<T>& b) {
 
 template<typename T>
 ostream& operator<<(ostream& os, const Matrix<T>& a) {
-  for(auto& i : a) {
-    for(auto& j : i) {
+  os << "[";
+  for (auto& i : a) {
+    os << "[";
+    for (auto& j : i) {
       os << j << " ";
     }
-    os << endl;
+    os << "]," << endl;
   }
-  os << endl;
+  os << "]" << endl;
 }
 
 template<typename T>
 ostream& operator<<(ostream& os, const vector<T>& a) {
-  for(auto& i : a) {
+  os << "[";
+  for (auto& i : a) {
     os << i << " ";
   }
-  os << endl;
+  os << "]" << endl;
 }
